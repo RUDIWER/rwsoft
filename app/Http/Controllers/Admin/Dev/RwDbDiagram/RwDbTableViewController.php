@@ -12,6 +12,7 @@ use App\Support\Database\DatabaseAccessGate;
 use App\Support\Database\DatabaseSchemaInspector;
 use App\Support\Tenancy\TenantContext;
 use App\Support\Tenancy\TenantDatabaseGuard;
+use App\Support\Tenancy\TenantTableNames;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +29,7 @@ class RwDbTableViewController extends Controller
     public function __construct(
         private readonly DatabaseSchemaInspector $schemaInspector,
         private readonly AuditLogger $auditLogger,
+        private readonly TenantTableNames $tenantTableNames,
     ) {}
 
     public function apiData(Request $request, string $table): JsonResponse
@@ -66,9 +68,11 @@ class RwDbTableViewController extends Controller
         }
 
         $tableName = (string) $context['tableName'];
+        $physicalTableName = $this->tenantTableNames->toPhysical($tableName);
+        $quotedPhysicalTableName = $this->tenantTableNames->quote($physicalTableName);
 
         try {
-            $createTable = DB::selectOne("SHOW CREATE TABLE `{$tableName}`");
+            $createTable = DB::selectOne('SHOW CREATE TABLE '.$quotedPhysicalTableName);
             $sql = "-- SQL Dump for table '{$tableName}'\n";
             $sql .= '-- Generated at: '.now()->toDateTimeString()."\n\n";
             $sql .= ($createTable->{'Create Table'} ?? '').";\n\n";
@@ -77,7 +81,7 @@ class RwDbTableViewController extends Controller
 
             if ($rows->isNotEmpty()) {
                 $columnNames = array_keys((array) $rows->first());
-                $sql .= "INSERT INTO `{$tableName}` (`".implode('`, `', $columnNames)."`) VALUES\n";
+                $sql .= 'INSERT INTO '.$quotedPhysicalTableName.' (`'.implode('`, `', $columnNames)."`) VALUES\n";
 
                 foreach ($rows as $index => $row) {
                     $values = [];

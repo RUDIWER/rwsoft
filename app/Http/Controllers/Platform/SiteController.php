@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Platform;
 
+use App\Actions\Platform\TestTenantDatabaseConnectionAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\StoreSiteRequest;
+use App\Http\Requests\Platform\TestTenantDatabaseConnectionRequest;
 use App\Models\Platform\Site;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -67,6 +70,15 @@ class SiteController extends Controller
                 $site->tenant_table_prefix = $storageOption === 'shared_prefixed'
                     ? ($validated['tenant_table_prefix'] ?: $this->tenantTablePrefix($validated['slug']))
                     : null;
+
+                if ($storageOption === 'existing_database') {
+                    $site->tenant_database_url = $validated['tenant_database_url'] ?: null;
+                    $site->tenant_database_host = $validated['tenant_database_host'] ?: null;
+                    $site->tenant_database_port = $validated['tenant_database_port'] ?? null;
+                    $site->tenant_database_username = $validated['tenant_database_username'] ?: null;
+                    $site->tenant_database_password = $validated['tenant_database_password'] ?: null;
+                }
+
                 $site->status = 'draft';
                 $site->created_by = $request->user()?->id;
             }
@@ -116,7 +128,14 @@ class SiteController extends Controller
 
         return redirect()
             ->route('platform.sites.edit', ['id' => $site->id])
-            ->with('status', 'Site succesvol bewaard.');
+            ->with('status', __('admin_common_ui.platform.sites.flash.saved'));
+    }
+
+    public function testTenantConnection(TestTenantDatabaseConnectionRequest $request, TestTenantDatabaseConnectionAction $testTenantDatabaseConnection): JsonResponse
+    {
+        $result = $testTenantDatabaseConnection->handle($request->validated());
+
+        return response()->json($result, $result['ok'] ? 200 : 422);
     }
 
     private function tenantDatabaseName(string $slug): string

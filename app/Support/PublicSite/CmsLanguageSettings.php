@@ -16,8 +16,15 @@ class CmsLanguageSettings
     public function languages(bool $activeOnly = false): array
     {
         if (Schema::hasTable('cms_languages')) {
+            $hasFlagMediaAsset = Schema::hasColumn('cms_languages', 'flag_media_asset_id');
+            $columns = ['locale', 'name', 'native_name', 'direction', 'is_active', 'sort_order'];
+
+            if ($hasFlagMediaAsset) {
+                $columns[] = 'flag_media_asset_id';
+            }
+
             $query = CmsLanguage::query()
-                ->with('flagMediaAsset')
+                ->when($hasFlagMediaAsset, fn ($query) => $query->with('flagMediaAsset'))
                 ->orderBy('sort_order')
                 ->orderBy('locale');
 
@@ -25,7 +32,7 @@ class CmsLanguageSettings
                 $query->where('is_active', true);
             }
 
-            $languages = $query->get(['locale', 'name', 'native_name', 'flag_media_asset_id', 'direction', 'is_active', 'sort_order']);
+            $languages = $query->get($columns);
 
             if ($languages->isNotEmpty()) {
                 return $languages
@@ -33,7 +40,7 @@ class CmsLanguageSettings
                         'locale' => (string) $language->locale,
                         'name' => (string) $language->name,
                         'native_name' => (string) $language->native_name,
-                        'flag' => $this->mediaUrl->payload($language->flagMediaAsset, (string) $language->locale),
+                        'flag' => $hasFlagMediaAsset ? $this->mediaUrl->payload($language->flagMediaAsset, (string) $language->locale) : null,
                         'direction' => (string) ($language->direction ?: 'ltr'),
                         'is_active' => (bool) $language->is_active,
                         'sort_order' => (int) $language->sort_order,

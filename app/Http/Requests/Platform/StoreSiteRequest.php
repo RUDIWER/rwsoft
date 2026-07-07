@@ -43,6 +43,11 @@ class StoreSiteRequest extends FormRequest
             'tenant_storage_option' => ['nullable', 'string', Rule::in(['create_database', 'existing_database', 'shared_prefixed'])],
             'tenant_database' => ['nullable', 'string', 'max:160', 'regex:/^[A-Za-z0-9_]+$/'],
             'tenant_table_prefix' => ['nullable', 'string', 'max:48', 'regex:'.config('tenancy.table_prefix_pattern')],
+            'tenant_database_url' => ['nullable', 'string', 'max:2048'],
+            'tenant_database_host' => ['nullable', 'string', 'max:255'],
+            'tenant_database_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'tenant_database_username' => ['nullable', 'string', 'max:160'],
+            'tenant_database_password' => ['nullable', 'string', 'max:1024'],
         ];
     }
 
@@ -62,9 +67,19 @@ class StoreSiteRequest extends FormRequest
                 $storageOption = (string) $this->input('tenant_storage_option', 'create_database');
                 $tenantDatabase = (string) $this->input('tenant_database', '');
                 $tenantTablePrefix = (string) $this->input('tenant_table_prefix', '');
+                $tenantDatabaseUrl = (string) $this->input('tenant_database_url', '');
+                $tenantDatabaseHost = (string) $this->input('tenant_database_host', '');
+                $tenantDatabaseUsername = (string) $this->input('tenant_database_username', '');
 
                 if ($storageOption === 'existing_database' && $tenantDatabase === '') {
                     $validator->errors()->add('tenant_database', __('admin_common_ui.errors.tenant_database_required'));
+                }
+
+                if ($storageOption === 'existing_database'
+                    && $tenantDatabaseUrl === ''
+                    && ($tenantDatabaseHost !== '' || $tenantDatabaseUsername !== '')
+                    && ($tenantDatabaseHost === '' || $tenantDatabaseUsername === '')) {
+                    $validator->errors()->add('tenant_database_host', __('admin_common_ui.errors.tenant_database_connection_incomplete'));
                 }
 
                 if (in_array($storageOption, ['create_database', 'existing_database'], true)
@@ -92,6 +107,7 @@ class StoreSiteRequest extends FormRequest
     {
         $name = trim((string) $this->input('name'));
         $slug = trim((string) $this->input('slug'));
+        $tenantDatabasePort = trim((string) $this->input('tenant_database_port'));
 
         $this->merge([
             'name' => $name,
@@ -101,6 +117,11 @@ class StoreSiteRequest extends FormRequest
             'tenant_storage_option' => $this->input('tenant_storage_option') ?: 'create_database',
             'tenant_database' => trim((string) $this->input('tenant_database')),
             'tenant_table_prefix' => strtolower(trim((string) $this->input('tenant_table_prefix'))),
+            'tenant_database_url' => trim((string) $this->input('tenant_database_url')),
+            'tenant_database_host' => strtolower(trim((string) $this->input('tenant_database_host'))),
+            'tenant_database_port' => $tenantDatabasePort !== '' ? $tenantDatabasePort : null,
+            'tenant_database_username' => trim((string) $this->input('tenant_database_username')),
+            'tenant_database_password' => (string) $this->input('tenant_database_password'),
         ]);
     }
 

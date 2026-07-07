@@ -6,6 +6,7 @@ use App\Actions\Platform\ConfigureTenantDatabaseAction;
 use App\Models\DatabaseLog;
 use App\Models\Platform\Site;
 use App\Support\Tenancy\TenantDatabaseGuard;
+use App\Support\Tenancy\TenantTableNames;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,7 +34,7 @@ class GenerateDatabaseBackupJob implements ShouldQueue
         public int $siteId,
     ) {}
 
-    public function handle(): void
+    public function handle(TenantTableNames $tenantTableNames): void
     {
         $this->configureTenantDatabase();
         $this->backup = DatabaseLog::query()->findOrFail($this->backupId);
@@ -84,7 +85,7 @@ class GenerateDatabaseBackupJob implements ShouldQueue
                 $this->addLogStep(__('db_diagram_ui.backup_log.processing_table', [
                     'table' => $tableName,
                 ]));
-                $tableSql = $this->generateSqlForTable($tableName);
+                $tableSql = $this->generateSqlForTable($tableName, $tenantTableNames);
                 $zip->addFromString("{$tableName}.sql", $tableSql);
                 $fullSql .= $tableSql."\n\n";
             }
@@ -164,11 +165,14 @@ class GenerateDatabaseBackupJob implements ShouldQueue
         }
     }
 
-    private function generateSqlForTable(string $tableName): string
+    private function generateSqlForTable(string $tableName, TenantTableNames $tenantTableNames): string
     {
         TenantDatabaseGuard::ensureTenantConnection();
 
-        $createTable = DB::selectOne("SHOW CREATE TABLE `{$tableName}`");
+        $physicalTableName = $tenantTableNames->toPhysical($tableName);
+        $quotedPhysicalTableName = $tenantTableNames->quote($physicalTableName);
+
+        $createTable = DB::selectOne('SHOW CREATE TABLE '.$quotedPhysicalTableName);
         $sql = "-- Structure for table '{$tableName}'\n";
         $sql .= ($createTable->{'Create Table'} ?? '').";\n\n";
         $sql .= "-- Data for table '{$tableName}'\n";
@@ -180,7 +184,7 @@ class GenerateDatabaseBackupJob implements ShouldQueue
         foreach (DB::table($tableName)->cursor() as $row) {
             if (! $hasData) {
                 $columnNames = array_keys((array) $row);
-                $sql .= "INSERT INTO `{$tableName}` (`".implode('`, `', $columnNames)."`) VALUES\n";
+                $sql .= 'INSERT INTO '.$quotedPhysicalTableName.' (`'.implode('`, `', $columnNames)."`) VALUES\n";
                 $hasData = true;
                 $insertCount = 0;
             }

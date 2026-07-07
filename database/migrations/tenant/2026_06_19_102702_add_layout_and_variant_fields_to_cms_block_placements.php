@@ -28,7 +28,7 @@ return new class extends Migration
             }
 
             if (! Schema::connection($this->connection)->hasColumn('cms_block_placements', 'published_style_revision_id')) {
-                $table->foreignId('published_style_revision_id')->nullable()->after('style_config')->constrained('cms_block_placement_style_revisions')->nullOnDelete();
+                $table->unsignedBigInteger('published_style_revision_id')->nullable()->after('style_config');
             }
         });
     }
@@ -40,7 +40,7 @@ return new class extends Migration
     {
         Schema::connection($this->connection)->table('cms_block_placements', function (Blueprint $table): void {
             if (Schema::connection($this->connection)->hasColumn('cms_block_placements', 'published_style_revision_id')) {
-                $table->dropConstrainedForeignId('published_style_revision_id');
+                $table->dropColumn('published_style_revision_id');
             }
 
             if (Schema::connection($this->connection)->hasColumn('cms_block_placements', 'style_config')) {

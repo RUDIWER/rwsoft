@@ -22,10 +22,20 @@ class Site extends Model
         'tenant_table_prefix',
         'tenant_database_mode',
         'tenant_provisioning_mode',
+        'tenant_database_url',
+        'tenant_database_host',
+        'tenant_database_port',
+        'tenant_database_username',
+        'tenant_database_password',
         'status',
         'created_by',
         'provisioned_at',
         'provisioning_error',
+    ];
+
+    protected $hidden = [
+        'tenant_database_password',
+        'tenant_database_url',
     ];
 
     public function creator(): BelongsTo
@@ -76,6 +86,9 @@ class Site extends Model
         return [
             'created_by' => 'integer',
             'provisioned_at' => 'datetime',
+            'tenant_database_port' => 'integer',
+            'tenant_database_url' => 'encrypted',
+            'tenant_database_password' => 'encrypted',
         ];
     }
 }

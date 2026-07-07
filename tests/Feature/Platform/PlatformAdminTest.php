@@ -61,6 +61,33 @@ class PlatformAdminTest extends TestCase
             ->assertFailed();
     }
 
+    public function test_rwsoft_install_promotes_configured_platform_admin(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'install-platform-admin-'.uniqid().'@example.com',
+            'is_platform_admin' => false,
+        ]);
+
+        $this
+            ->artisan('rwsoft:install', $this->installSkipOptions([
+                '--platform-admin-email' => $user->email,
+            ]))
+            ->assertSuccessful();
+
+        $user->refresh();
+
+        $this->assertTrue((bool) $user->is_platform_admin);
+    }
+
+    public function test_rwsoft_install_rejects_missing_configured_platform_admin(): void
+    {
+        $this
+            ->artisan('rwsoft:install', $this->installSkipOptions([
+                '--platform-admin-email' => 'missing-install-admin-'.uniqid().'@example.com',
+            ]))
+            ->assertFailed();
+    }
+
     public function test_platform_dashboard_requires_platform_admin(): void
     {
         $user = $this->createUser(['is_platform_admin' => false]);
@@ -68,7 +95,8 @@ class PlatformAdminTest extends TestCase
         $this
             ->actingAs($user)
             ->get(route('platform.dashboard'))
-            ->assertForbidden();
+            ->assertRedirect(route('site-switcher.index'))
+            ->assertSessionHas('warning');
     }
 
     public function test_platform_dashboard_renders_for_platform_admin(): void
@@ -137,6 +165,20 @@ class PlatformAdminTest extends TestCase
             'two_factor_secret' => encrypt('platform-test-secret'),
             'two_factor_confirmed_at' => now(),
         ], $overrides));
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function installSkipOptions(array $overrides = []): array
+    {
+        return array_merge([
+            '--skip-central-migrations' => true,
+            '--skip-tenant-migrations' => true,
+            '--skip-tenant-seeding' => true,
+            '--skip-site' => true,
+        ], $overrides);
     }
 
     /**

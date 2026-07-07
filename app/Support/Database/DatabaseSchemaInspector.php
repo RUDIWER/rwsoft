@@ -4,6 +4,7 @@ namespace App\Support\Database;
 
 use App\Support\ModelDiscovery\ModelClassLocator;
 use App\Support\Tenancy\TenantDatabaseGuard;
+use App\Support\Tenancy\TenantTableNames;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,10 @@ use Throwable;
 
 class DatabaseSchemaInspector
 {
-    public function __construct(private readonly ModelClassLocator $modelClassLocator) {}
+    public function __construct(
+        private readonly ModelClassLocator $modelClassLocator,
+        private readonly TenantTableNames $tenantTableNames,
+    ) {}
 
     /**
      * @var array<int, array<string, mixed>>|null
@@ -32,13 +36,16 @@ class DatabaseSchemaInspector
         TenantDatabaseGuard::ensureTenantConnection();
 
         try {
-            $rows = DB::select(
-                'select table_name as table_name from information_schema.tables where table_schema = DATABASE() order by table_name'
+            $rows = DB::select($this->tenantTableNames->usesPrefix()
+                ? 'select table_name as table_name from information_schema.tables where table_schema = DATABASE() and left(table_name, ?) = ? order by table_name'
+                : 'select table_name as table_name from information_schema.tables where table_schema = DATABASE() order by table_name',
+                $this->tenantTableNames->usesPrefix() ? [strlen($this->tenantTableNames->prefix()), $this->tenantTableNames->prefix()] : []
             );
 
             $tables = [];
             foreach ($rows as $row) {
-                $name = is_object($row) ? (string) ($row->table_name ?? '') : '';
+                $physicalName = is_object($row) ? (string) ($row->table_name ?? '') : '';
+                $name = $this->tenantTableNames->toLogical($physicalName);
                 if ($name === '' || $this->isViewBlocked($name)) {
                     continue;
                 }
@@ -51,7 +58,12 @@ class DatabaseSchemaInspector
             try {
                 $tables = [];
                 foreach (DB::getSchemaBuilder()->getTables() as $table) {
-                    $name = is_array($table) ? (string) ($table['name'] ?? '') : '';
+                    $physicalName = is_array($table) ? (string) ($table['name'] ?? '') : '';
+                    if (! $this->tenantTableNames->belongsToTenant($physicalName)) {
+                        continue;
+                    }
+
+                    $name = $this->tenantTableNames->toLogical($physicalName);
                     if ($name === '' || $this->isViewBlocked($name)) {
                         continue;
                     }
@@ -77,6 +89,10 @@ class DatabaseSchemaInspector
 
         if (preg_match('/^[A-Za-z0-9_]+$/', $normalized) !== 1) {
             return null;
+        }
+
+        if ($this->tenantTableNames->usesPrefix() && str_starts_with($normalized, $this->tenantTableNames->prefix())) {
+            $normalized = $this->tenantTableNames->toLogical($normalized);
         }
 
         return $normalized;
@@ -105,7 +121,8 @@ class DatabaseSchemaInspector
         }
 
         try {
-            DB::selectOne("SELECT 1 FROM `{$tableName}` LIMIT 0");
+            $physicalTableName = $this->tenantTableNames->quote($this->tenantTableNames->toPhysical($tableName));
+            DB::selectOne("SELECT 1 FROM {$physicalTableName} LIMIT 0");
 
             return true;
         } catch (Throwable) {
@@ -122,7 +139,7 @@ class DatabaseSchemaInspector
         TenantDatabaseGuard::ensureTenantConnection();
 
         try {
-            $row = DB::selectOne("SHOW CREATE TABLE `{$tableName}`");
+            $row = DB::selectOne('SHOW CREATE TABLE '.$this->tenantTableNames->quote($this->tenantTableNames->toPhysical($tableName)));
             if (! is_object($row)) {
                 return null;
             }
@@ -161,7 +178,7 @@ class DatabaseSchemaInspector
         TenantDatabaseGuard::ensureTenantConnection();
 
         try {
-            $row = DB::selectOne('SHOW TABLE STATUS LIKE ?', [$tableName]);
+            $row = DB::selectOne('SHOW TABLE STATUS LIKE ?', [$this->tenantTableNames->toPhysical($tableName)]);
             if (! is_object($row)) {
                 return [];
             }
@@ -197,7 +214,7 @@ class DatabaseSchemaInspector
                   from information_schema.columns
                   where table_schema = DATABASE() and table_name = ?
                   order by ordinal_position',
-                [$tableName]
+                [$this->tenantTableNames->toPhysical($tableName)]
             );
 
             if ($rows !== []) {
@@ -221,7 +238,7 @@ class DatabaseSchemaInspector
         }
 
         try {
-            $rows = DB::select("SHOW COLUMNS FROM `{$tableName}`");
+            $rows = DB::select('SHOW COLUMNS FROM '.$this->tenantTableNames->quote($this->tenantTableNames->toPhysical($tableName)));
             if (! empty($rows)) {
                 $columns = [];
                 foreach ($rows as $row) {
@@ -631,14 +648,14 @@ class DatabaseSchemaInspector
                  where kcu.table_schema = DATABASE()
                    and kcu.table_name = ?
                    and kcu.referenced_table_name is not null',
-                [$tableName]
+                [$this->tenantTableNames->toPhysical($tableName)]
             );
 
-            return array_values(array_map(static function (object $row): array {
+            return array_values(array_map(function (object $row): array {
                 return [
-                    'table' => (string) ($row->table_name ?? ''),
+                    'table' => $this->tenantTableNames->toLogical((string) ($row->table_name ?? '')),
                     'column' => (string) ($row->column_name ?? ''),
-                    'referenced_table' => (string) ($row->referenced_table_name ?? ''),
+                    'referenced_table' => $this->tenantTableNames->toLogical((string) ($row->referenced_table_name ?? '')),
                     'referenced_column' => (string) ($row->referenced_column_name ?? ''),
                     'constraint' => (string) ($row->constraint_name ?? ''),
                     'on_update' => (string) ($row->update_rule ?? ''),
@@ -673,14 +690,14 @@ class DatabaseSchemaInspector
                  where kcu.table_schema = DATABASE()
                    and kcu.referenced_table_name = ?
                    and kcu.referenced_table_name is not null',
-                [$tableName]
+                [$this->tenantTableNames->toPhysical($tableName)]
             );
 
-            return array_values(array_map(static function (object $row): array {
+            return array_values(array_map(function (object $row): array {
                 return [
-                    'table' => (string) ($row->table_name ?? ''),
+                    'table' => $this->tenantTableNames->toLogical((string) ($row->table_name ?? '')),
                     'column' => (string) ($row->column_name ?? ''),
-                    'referenced_table' => (string) ($row->referenced_table_name ?? ''),
+                    'referenced_table' => $this->tenantTableNames->toLogical((string) ($row->referenced_table_name ?? '')),
                     'referenced_column' => (string) ($row->referenced_column_name ?? ''),
                     'constraint' => (string) ($row->constraint_name ?? ''),
                     'on_update' => (string) ($row->update_rule ?? ''),
@@ -708,9 +725,9 @@ class DatabaseSchemaInspector
                         column_name as column_name,
                         collation as collation
                  from information_schema.statistics
-                 where table_schema = DATABASE() and table_name = ?
-                 order by index_name, seq_in_index',
-                [$tableName]
+                  where table_schema = DATABASE() and table_name = ?
+                  order by index_name, seq_in_index',
+                [$this->tenantTableNames->toPhysical($tableName)]
             );
 
             $indexes = [];

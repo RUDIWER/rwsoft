@@ -10,6 +10,7 @@ use App\Support\Audit\AuditLogger;
 use App\Support\Database\DatabaseSchemaInspector;
 use App\Support\Security\TenantAcl;
 use App\Support\Tenancy\TenantContext;
+use App\Support\Tenancy\TenantTableNames;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -89,11 +90,11 @@ class TenantDatabaseBackupJobTest extends TestCase
         ]);
         $request->setUserResolver(static fn (): User => $user);
 
-        $response = (new RwDbTableViewController($schemaInspector, $auditLogger))->startFullBackup($request);
+        $response = (new RwDbTableViewController($schemaInspector, $auditLogger, app(TenantTableNames::class)))->startFullBackup($request);
         $payload = $response->getData(true);
 
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertSame('Backup proces gestart.', $payload['message'] ?? null);
+        $this->assertSame(__('db_diagram_ui.backend.backup_started'), $payload['message'] ?? null);
 
         Queue::assertPushed(GenerateDatabaseBackupJob::class, function (GenerateDatabaseBackupJob $job) use ($payload): bool {
             return $job->siteId === 7654321

@@ -2,6 +2,8 @@
 
 namespace App\Actions\Admin\Base\Query;
 
+use App\Support\Tenancy\TenantSqlTablePrefixer;
+
 class ValidateSqlQueryAction
 {
     /**
@@ -51,6 +53,15 @@ class ValidateSqlQueryAction
             return [
                 'is_valid' => false,
                 'message' => 'De query bevat een niet-toegelaten SQL operatie.',
+                'sql' => $normalizedSql,
+                'bindings' => [],
+            ];
+        }
+
+        if (app(TenantSqlTablePrefixer::class)->hasDatabaseQualifiedTableReference($normalizedSql)) {
+            return [
+                'is_valid' => false,
+                'message' => __('query_builder_ui.runtime.database_qualified_tables_forbidden'),
                 'sql' => $normalizedSql,
                 'bindings' => [],
             ];

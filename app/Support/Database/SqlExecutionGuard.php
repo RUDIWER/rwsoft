@@ -2,8 +2,16 @@
 
 namespace App\Support\Database;
 
+use App\Support\Tenancy\TenantSqlTablePrefixer;
+use App\Support\Tenancy\TenantTableNames;
+
 class SqlExecutionGuard
 {
+    public function __construct(
+        private readonly TenantSqlTablePrefixer $tenantSqlTablePrefixer,
+        private readonly TenantTableNames $tenantTableNames,
+    ) {}
+
     /**
      * @return array{error: bool, message?: string, sql?: string, statement?: string, stripped?: string}
      */
@@ -23,13 +31,27 @@ class SqlExecutionGuard
             return $this->errorResult(__('db_diagram_ui.sql_editor.errors.forbidden_patterns'));
         }
 
+        if ($this->tenantSqlTablePrefixer->hasDatabaseQualifiedTableReference($normalized['stripped'])) {
+            return $this->errorResult(__('db_diagram_ui.sql_editor.errors.forbidden_patterns'));
+        }
+
         if ($rejectLimitOffset && preg_match('/\b(limit|offset)\b/i', $normalized['stripped']) === 1) {
             return $this->errorResult(__('db_diagram_ui.sql_editor.errors.limit_offset_forbidden'));
         }
 
+        if ($this->tenantTableNames->usesPrefix() && ! in_array($statement, ['select', 'with'], true)) {
+            return $this->errorResult(__('db_diagram_ui.sql_editor.errors.forbidden_patterns'));
+        }
+
+        $safeSql = $appendLimit ? $this->appendReadonlyLimit($normalized['sql'], $statement) : $normalized['sql'];
+
+        if (in_array($statement, ['select', 'with'], true)) {
+            $safeSql = $this->tenantSqlTablePrefixer->applyToSelectSql($safeSql);
+        }
+
         return [
             'error' => false,
-            'sql' => $appendLimit ? $this->appendReadonlyLimit($normalized['sql'], $statement) : $normalized['sql'],
+            'sql' => $safeSql,
             'statement' => $statement,
             'stripped' => $normalized['stripped'],
         ];
@@ -51,6 +73,10 @@ class SqlExecutionGuard
         }
 
         if ($this->containsForbiddenPattern($normalized['stripped'])) {
+            return $this->errorResult(__('db_diagram_ui.sql_editor.errors.forbidden_patterns'));
+        }
+
+        if ($this->tenantTableNames->usesPrefix()) {
             return $this->errorResult(__('db_diagram_ui.sql_editor.errors.forbidden_patterns'));
         }
 

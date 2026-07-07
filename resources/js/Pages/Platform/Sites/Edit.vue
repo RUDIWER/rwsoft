@@ -47,7 +47,7 @@
                             <Label for="primary_domain">{{
                                 t(
                                     'platform.sites.form.primary_domain',
-                                    'Primair domein',
+                                    'Primary domain',
                                 )
                             }}</Label>
                             <Input
@@ -56,7 +56,7 @@
                                 :placeholder="
                                     t(
                                         'platform.sites.form.domain_placeholder',
-                                        'voorbeeld.be',
+                                        'example.com',
                                     )
                                 "
                             />
@@ -72,7 +72,7 @@
                             <Label for="first_admin_email">{{
                                 t(
                                     'platform.sites.form.first_admin',
-                                    'Eerste beheerder',
+                                    'First administrator',
                                 )
                             }}</Label>
                             <Input
@@ -82,7 +82,7 @@
                                 :placeholder="
                                     t(
                                         'platform.sites.form.first_admin_placeholder',
-                                        'bestaande-gebruiker@example.com',
+                                        'existing-user@example.com',
                                     )
                                 "
                             />
@@ -90,7 +90,7 @@
                                 {{
                                     t(
                                         'platform.sites.form.first_admin_help',
-                                        'Alleen bestaande centrale gebruikers kunnen gekoppeld worden.',
+                                        'Only existing central users can be linked.',
                                     )
                                 }}
                             </p>
@@ -213,6 +213,251 @@
                                     {{ siteForm.errors.tenant_table_prefix }}
                                 </p>
                             </div>
+
+                            <div
+                                v-if="usesExistingTenantDatabase"
+                                class="grid gap-3 rounded-md border border-slate-200 bg-white p-3"
+                            >
+                                <div>
+                                    <div
+                                        class="text-sm font-medium text-slate-900"
+                                    >
+                                        {{
+                                            t(
+                                                'platform.sites.form.tenant_connection.title',
+                                                'Database connection',
+                                            )
+                                        }}
+                                    </div>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{
+                                            t(
+                                                'platform.sites.form.tenant_connection.description',
+                                                'Optional. Leave these fields empty when the existing database is reachable through the configured tenant database connection.',
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+
+                                <div class="grid gap-2">
+                                    <Label for="tenant_database_url">{{
+                                        t(
+                                            'platform.sites.form.tenant_database_url',
+                                            'Connection URL',
+                                        )
+                                    }}</Label>
+                                    <Input
+                                        id="tenant_database_url"
+                                        v-model="siteForm.tenant_database_url"
+                                        type="password"
+                                        :placeholder="
+                                            t(
+                                                'platform.sites.form.tenant_database_url_placeholder',
+                                                'mysql://user:password@host:3306/database',
+                                            )
+                                        "
+                                    />
+                                    <p class="text-xs text-slate-500">
+                                        {{
+                                            t(
+                                                'platform.sites.form.tenant_database_url_help',
+                                                'Optional alternative to host, port, username and password. This value is stored encrypted.',
+                                            )
+                                        }}
+                                    </p>
+                                    <p
+                                        v-if="
+                                            siteForm.errors.tenant_database_url
+                                        "
+                                        class="text-sm text-red-600"
+                                    >
+                                        {{
+                                            siteForm.errors.tenant_database_url
+                                        }}
+                                    </p>
+                                </div>
+
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="grid gap-2">
+                                        <Label for="tenant_database_host">{{
+                                            t(
+                                                'platform.sites.form.tenant_database_host',
+                                                'Database host or IP address',
+                                            )
+                                        }}</Label>
+                                        <Input
+                                            id="tenant_database_host"
+                                            v-model="
+                                                siteForm.tenant_database_host
+                                            "
+                                            :placeholder="
+                                                t(
+                                                    'platform.sites.form.tenant_database_host_placeholder',
+                                                    '127.0.0.1',
+                                                )
+                                            "
+                                        />
+                                        <p
+                                            v-if="
+                                                siteForm.errors
+                                                    .tenant_database_host
+                                            "
+                                            class="text-sm text-red-600"
+                                        >
+                                            {{
+                                                siteForm.errors
+                                                    .tenant_database_host
+                                            }}
+                                        </p>
+                                    </div>
+
+                                    <div class="grid gap-2">
+                                        <Label for="tenant_database_port">{{
+                                            t(
+                                                'platform.sites.form.tenant_database_port',
+                                                'Database port',
+                                            )
+                                        }}</Label>
+                                        <Input
+                                            id="tenant_database_port"
+                                            v-model="
+                                                siteForm.tenant_database_port
+                                            "
+                                            inputmode="numeric"
+                                            :placeholder="
+                                                t(
+                                                    'platform.sites.form.tenant_database_port_placeholder',
+                                                    '3306',
+                                                )
+                                            "
+                                        />
+                                        <p
+                                            v-if="
+                                                siteForm.errors
+                                                    .tenant_database_port
+                                            "
+                                            class="text-sm text-red-600"
+                                        >
+                                            {{
+                                                siteForm.errors
+                                                    .tenant_database_port
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="grid gap-2">
+                                        <Label for="tenant_database_username">{{
+                                            t(
+                                                'platform.sites.form.tenant_database_username',
+                                                'Database username',
+                                            )
+                                        }}</Label>
+                                        <Input
+                                            id="tenant_database_username"
+                                            v-model="
+                                                siteForm.tenant_database_username
+                                            "
+                                        />
+                                        <p
+                                            v-if="
+                                                siteForm.errors
+                                                    .tenant_database_username
+                                            "
+                                            class="text-sm text-red-600"
+                                        >
+                                            {{
+                                                siteForm.errors
+                                                    .tenant_database_username
+                                            }}
+                                        </p>
+                                    </div>
+
+                                    <div class="grid gap-2">
+                                        <Label for="tenant_database_password">{{
+                                            t(
+                                                'platform.sites.form.tenant_database_password',
+                                                'Database password',
+                                            )
+                                        }}</Label>
+                                        <Input
+                                            id="tenant_database_password"
+                                            v-model="
+                                                siteForm.tenant_database_password
+                                            "
+                                            type="password"
+                                        />
+                                        <p class="text-xs text-slate-500">
+                                            {{
+                                                t(
+                                                    'platform.sites.form.tenant_database_password_help',
+                                                    'Stored encrypted. Leave empty for a passwordless connection or when using a connection URL.',
+                                                )
+                                            }}
+                                        </p>
+                                        <p
+                                            v-if="
+                                                siteForm.errors
+                                                    .tenant_database_password
+                                            "
+                                            class="text-sm text-red-600"
+                                        >
+                                            {{
+                                                siteForm.errors
+                                                    .tenant_database_password
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    v-if="connectionTest.message"
+                                    :class="[
+                                        'rounded-md border px-3 py-2 text-sm',
+                                        connectionTest.type === 'success'
+                                            ? 'border-green-200 bg-green-50 text-green-800'
+                                            : 'border-red-200 bg-red-50 text-red-800',
+                                    ]"
+                                >
+                                    {{ connectionTest.message }}
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        class="gap-2 shadow-none"
+                                        :disabled="
+                                            connectionTest.processing ||
+                                            !siteForm.tenant_database
+                                        "
+                                        @click="testTenantConnection"
+                                    >
+                                        <span
+                                            v-if="connectionTest.processing"
+                                            class="mdi mdi-loading animate-spin text-base text-blue-700"
+                                            aria-hidden="true"
+                                        />
+                                        <span
+                                            v-else
+                                            class="mdi mdi-database-check text-base text-blue-700"
+                                            aria-hidden="true"
+                                        />
+                                        {{
+                                            connectionTest.processing
+                                                ? t(
+                                                      'platform.sites.connection_test.testing',
+                                                      'Testing...',
+                                                  )
+                                                : t(
+                                                      'platform.sites.connection_test.button',
+                                                      'Test connection',
+                                                  )
+                                        }}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         <div
@@ -279,14 +524,14 @@
                         <div class="flex flex-wrap justify-end gap-2">
                             <Button as-child type="button" variant="outline">
                                 <Link :href="route('platform.sites.index')">{{
-                                    t('actions.back', 'Terug')
+                                    t('actions.back', 'Back')
                                 }}</Link>
                             </Button>
                             <Button
                                 type="submit"
                                 :disabled="siteForm.processing"
                             >
-                                {{ t('actions.save', 'Bewaren') }}
+                                {{ t('actions.save', 'Save') }}
                             </Button>
                         </div>
                     </form>
@@ -325,7 +570,7 @@
                             {{
                                 t(
                                     'platform.sites.provisioning.failed',
-                                    'Provisioning mislukt. Controleer de foutmelding en probeer opnieuw.',
+                                    'Provisioning failed. Check the error message and try again.',
                                 )
                             }}
                         </div>
@@ -349,7 +594,7 @@
                                 <span class="text-slate-600">{{
                                     t(
                                         'platform.sites.provisioning.executed_at',
-                                        'Uitgevoerd op',
+                                        'Executed at',
                                     )
                                 }}</span>
                                 <span class="text-slate-900">{{
@@ -368,7 +613,7 @@
                                 isProvisioned
                                     ? t(
                                           'platform.sites.provisioning.provisioned',
-                                          'Database geprovisioned',
+                                          'Database provisioned',
                                       )
                                     : t(
                                           'platform.sites.provisioning.provision',
@@ -382,13 +627,13 @@
                 <Card class="border-slate-200 bg-white shadow-sm">
                     <CardHeader>
                         <CardTitle>{{
-                            t('platform.sites.domains.title', 'Domeinen')
+                            t('platform.sites.domains.title', 'Domains')
                         }}</CardTitle>
                         <CardDescription>
                             {{
                                 t(
                                     'platform.sites.domains.description',
-                                    'Domeinen worden centraal gekoppeld aan deze site.',
+                                    'Domains are centrally linked to this site.',
                                 )
                             }}
                         </CardDescription>
@@ -405,7 +650,7 @@
                                     :placeholder="
                                         t(
                                             'platform.sites.form.domain_placeholder',
-                                            'voorbeeld.be',
+                                            'example.com',
                                         )
                                     "
                                 />
@@ -427,7 +672,7 @@
                                 {{
                                     t(
                                         'platform.sites.form.primary_domain',
-                                        'Primair domein',
+                                        'Primary domain',
                                     )
                                 }}
                             </label>
@@ -442,7 +687,7 @@
                                 {{
                                     t(
                                         'platform.sites.form.force_https',
-                                        'Forceer HTTPS',
+                                        'Force HTTPS',
                                     )
                                 }}
                             </label>
@@ -453,7 +698,7 @@
                                 {{
                                     t(
                                         'platform.sites.domains.add',
-                                        'Domein toevoegen',
+                                        'Add domain',
                                     )
                                 }}
                             </Button>
@@ -481,7 +726,7 @@
                                             {{
                                                 t(
                                                     'platform.columns.primary',
-                                                    'Primair',
+                                                    'Primary',
                                                 )
                                             }}
                                         </th>
@@ -504,15 +749,15 @@
                                         <td class="px-3 py-2 text-slate-600">
                                             {{
                                                 domain.is_primary
-                                                    ? t('common.yes', 'Ja')
-                                                    : t('common.no', 'Nee')
+                                                    ? t('common.yes', 'Yes')
+                                                    : t('common.no', 'No')
                                             }}
                                         </td>
                                         <td class="px-3 py-2 text-slate-600">
                                             {{
                                                 domain.force_https
-                                                    ? t('common.yes', 'Ja')
-                                                    : t('common.no', 'Nee')
+                                                    ? t('common.yes', 'Yes')
+                                                    : t('common.no', 'No')
                                             }}
                                         </td>
                                     </tr>
@@ -540,7 +785,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 
 const props = defineProps({
     site: { type: Object, default: null },
@@ -551,13 +796,13 @@ const { t } = useAdminTranslations('admin_common_ui');
 const isEditMode = computed(() => Boolean(props.site?.id));
 const pageTitle = computed(() =>
     isEditMode.value
-        ? t('platform.sites.form.edit_title', 'Site bewerken')
-        : t('platform.sites.form.create_title', 'Site toevoegen'),
+        ? t('platform.sites.form.edit_title', 'Edit site')
+        : t('platform.sites.form.create_title', 'Add site'),
 );
 const layoutTitle = computed(() =>
     isEditMode.value
-        ? t('platform.sites.form.edit_title', 'Site bewerken')
-        : t('platform.actions.new_site', 'Nieuwe site'),
+        ? t('platform.sites.form.edit_title', 'Edit site')
+        : t('platform.actions.new_site', 'New site'),
 );
 const isProvisioned = computed(
     () => props.site?.status === 'active' && !props.site?.provisioning_error,
@@ -567,28 +812,28 @@ const provisioningDescription = computed(() => {
     if (isProvisioned.value) {
         return t(
             'platform.sites.provisioning.ready_description',
-            'De fysieke tenant database is aangemaakt en klaar voor gebruik.',
+            'The physical tenant database has been created and is ready for use.',
         );
     }
 
     return t(
         'platform.sites.provisioning.create_description',
-        'Maak de fysieke tenant database aan en voer tenant migraties uit.',
+        'Create the physical tenant database and run tenant migrations.',
     );
 });
 
 const provisioningStatusLabel = computed(() => {
     const labels = {
-        active: t('platform.status.active', 'Actief'),
-        draft: t('platform.status.draft', 'Concept'),
-        failed: t('platform.status.failed', 'Mislukt'),
-        provisioning: t('platform.status.provisioning', 'Bezig'),
+        active: t('platform.status.active', 'Active'),
+        draft: t('platform.status.draft', 'Draft'),
+        failed: t('platform.status.failed', 'Failed'),
+        provisioning: t('platform.status.provisioning', 'Provisioning'),
     };
 
     return (
         labels[props.site?.status] ??
         props.site?.status ??
-        t('platform.status.unknown', 'Onbekend')
+        t('platform.status.unknown', 'Unknown')
     );
 });
 
@@ -616,6 +861,11 @@ const siteForm = useForm({
     tenant_storage_option: 'create_database',
     tenant_database: '',
     tenant_table_prefix: '',
+    tenant_database_url: '',
+    tenant_database_host: '',
+    tenant_database_port: '',
+    tenant_database_username: '',
+    tenant_database_password: '',
 });
 
 const tenantStorageOptions = computed(() => [
@@ -638,7 +888,7 @@ const tenantStorageOptions = computed(() => [
         ),
         description: t(
             'platform.sites.form.tenant_storage.existing_database.description',
-            'RwSoft will not create a database. It will connect to the existing database and add tenant tables through migrations.',
+            'RwSoft will not create a database. It will use the configured tenant database connection or the connection details below and add tenant tables through migrations.',
         ),
     },
     {
@@ -681,7 +931,7 @@ const tenantDatabaseHelp = computed(() =>
           )
         : t(
               'platform.sites.form.existing_database_help',
-              'Required. The database must already exist and be reachable by the configured tenant connection.',
+              'Required. The database must already exist on the configured tenant connection or on the connection details below.',
           ),
 );
 
@@ -693,8 +943,70 @@ const domainForm = useForm({
 
 const provisionForm = useForm({});
 
+const connectionTest = reactive({
+    processing: false,
+    type: '',
+    message: '',
+});
+
 function submitSite() {
     siteForm.post(route('platform.sites.store', { id: props.site?.id ?? 0 }));
+}
+
+async function testTenantConnection() {
+    connectionTest.processing = true;
+    connectionTest.type = '';
+    connectionTest.message = '';
+    siteForm.clearErrors(
+        'tenant_database',
+        'tenant_database_url',
+        'tenant_database_host',
+        'tenant_database_port',
+        'tenant_database_username',
+        'tenant_database_password',
+    );
+
+    try {
+        const response = await window.axios.post(
+            route('platform.sites.test-tenant-connection'),
+            {
+                tenant_storage_option: siteForm.tenant_storage_option,
+                tenant_database: siteForm.tenant_database,
+                tenant_database_url: siteForm.tenant_database_url,
+                tenant_database_host: siteForm.tenant_database_host,
+                tenant_database_port: siteForm.tenant_database_port,
+                tenant_database_username: siteForm.tenant_database_username,
+                tenant_database_password: siteForm.tenant_database_password,
+            },
+        );
+
+        connectionTest.type = 'success';
+        connectionTest.message =
+            response.data?.message ||
+            t(
+                'platform.sites.connection_test.success',
+                'The database connection works.',
+            );
+    } catch (error) {
+        const errors = error.response?.data?.errors || {};
+
+        Object.entries(errors).forEach(([field, messages]) => {
+            siteForm.setError(
+                field,
+                Array.isArray(messages) ? messages[0] : String(messages),
+            );
+        });
+
+        connectionTest.type = 'error';
+        connectionTest.message =
+            error.response?.data?.message ||
+            t(
+                'platform.sites.connection_test.failed',
+                'The database connection could not be established.',
+            );
+    } finally {
+        connectionTest.processing = false;
+    }
 }
 
 function submitDomain() {

@@ -10,7 +10,12 @@
                     {{ appName }} Platform
                 </div>
                 <div class="text-xs text-slate-500">
-                    {{ t('app.platform_subtitle', 'Centrale sitebeheerlaag') }}
+                    {{
+                        t(
+                            'app.platform_subtitle',
+                            'Platform management for sites, domains and tenant databases',
+                        )
+                    }}
                 </div>
             </div>
 
@@ -61,7 +66,12 @@
 
                     <div class="flex items-center gap-2">
                         <label class="sr-only" for="platform-locale-select">
-                            {{ t('locale.platform_language', 'Platform taal') }}
+                            {{
+                                t(
+                                    'locale.platform_language',
+                                    'Platform language',
+                                )
+                            }}
                         </label>
                         <select
                             id="platform-locale-select"
@@ -86,7 +96,7 @@
                             as="button"
                             class="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm text-slate-700 hover:bg-slate-50"
                         >
-                            {{ t('actions.logout', 'Afmelden') }}
+                            {{ t('actions.logout', 'Sign out') }}
                         </Link>
                     </div>
                 </div>
@@ -153,7 +163,7 @@ const navigationItems = computed(() => [
         icon: 'mdi-email-fast',
     },
     {
-        label: t('navigation.translations', 'Vertalingen'),
+        label: t('navigation.translations', 'Translations'),
         route: 'platform.translations.index',
         icon: 'mdi-translate',
     },
@@ -162,7 +172,7 @@ const navigationItems = computed(() => [
 const userName = computed(
     () =>
         page.props?.auth?.user?.name ||
-        t('app.platform_user_fallback', 'Platformbeheerder'),
+        t('app.platform_user_fallback', 'Platform administrator'),
 );
 const appName = computed(() => page.props?.app?.name || 'Application');
 const appVersionLabel = computed(

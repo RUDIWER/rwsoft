@@ -356,6 +356,7 @@ Route::middleware(['auth', '2fa.required', 'platform.admin'])
         Route::get('/sites', [PlatformSiteController::class, 'index'])->name('sites.index');
         Route::get('/sites/create', [PlatformSiteController::class, 'edit'])->defaults('id', 0)->name('sites.create');
         Route::get('/sites/{id}/edit', [PlatformSiteController::class, 'edit'])->whereNumber('id')->name('sites.edit');
+        Route::post('/sites/test-tenant-connection', [PlatformSiteController::class, 'testTenantConnection'])->middleware('throttle:10,1')->name('sites.test-tenant-connection');
         Route::post('/sites/{id}/store', [PlatformSiteController::class, 'store'])->whereNumber('id')->name('sites.store');
         Route::post('/sites/{site}/domains/store', [PlatformSiteDomainController::class, 'store'])->name('sites.domains.store');
         Route::post('/sites/{site}/provision', [PlatformSiteProvisioningController::class, 'store'])->name('sites.provision');

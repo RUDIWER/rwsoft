@@ -32,7 +32,7 @@ class SiteProvisioningController extends Controller
 
             return redirect()
                 ->route('platform.sites.edit', ['id' => $site->id])
-                ->with('warning', 'Site database is al succesvol geprovisioned.');
+                ->with('warning', __('admin_common_ui.platform.sites.flash.already_provisioned'));
         }
 
         $success = $provisionSiteDatabase->handle($site);
@@ -54,6 +54,6 @@ class SiteProvisioningController extends Controller
 
         return redirect()
             ->route('platform.sites.edit', ['id' => $site->id])
-            ->with($success ? 'status' : 'error', $success ? 'Site database succesvol geprovisioned.' : 'Site database provisioning mislukt. Controleer de foutmelding.');
+            ->with($success ? 'status' : 'error', $success ? __('admin_common_ui.platform.sites.flash.provisioned') : __('admin_common_ui.platform.sites.flash.provisioning_failed'));
     }
 }

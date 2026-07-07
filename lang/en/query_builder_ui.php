@@ -296,6 +296,7 @@ return [
         'empty_table' => 'No table preview loaded yet. Click Table.',
         'query_inactive' => 'This query is not active.',
         'query_invalid' => 'Query is invalid.',
+        'database_qualified_tables_forbidden' => 'Database-qualified table names are not allowed.',
         'query_cannot_run' => 'This query cannot be executed.',
         'missing_bindings_with_list' => 'Missing query variables: :bindings.',
         'query_failed_with_error' => 'Running the query failed: :error',

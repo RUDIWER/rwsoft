@@ -14,14 +14,14 @@
                         {{
                             t(
                                 'platform.sites.description',
-                                'Centrale configuratie van domeinen en tenant databases.',
+                                'Central configuration of domains and tenant databases.',
                             )
                         }}
                     </CardDescription>
                 </div>
                 <Button as-child>
                     <Link :href="route('platform.sites.create')">
-                        {{ t('platform.actions.new_site', 'Nieuwe site') }}
+                        {{ t('platform.actions.new_site', 'New site') }}
                     </Link>
                 </Button>
             </CardHeader>
@@ -31,13 +31,13 @@
                         <thead class="bg-slate-50 text-slate-600">
                             <tr>
                                 <th class="px-3 py-2 text-left font-medium">
-                                    {{ t('platform.columns.name', 'Naam') }}
+                                    {{ t('platform.columns.name', 'Name') }}
                                 </th>
                                 <th class="px-3 py-2 text-left font-medium">
                                     {{
                                         t(
                                             'platform.columns.primary_domain',
-                                            'Primary domein',
+                                            'Primary domain',
                                         )
                                     }}
                                 </th>
@@ -56,7 +56,7 @@
                                     {{ t('platform.columns.users', 'Users') }}
                                 </th>
                                 <th class="px-3 py-2 text-right font-medium">
-                                    {{ t('platform.columns.action', 'Actie') }}
+                                    {{ t('platform.columns.action', 'Action') }}
                                 </th>
                             </tr>
                         </thead>
@@ -101,7 +101,7 @@
                                                 })
                                             "
                                         >
-                                            {{ t('actions.edit', 'Bewerken') }}
+                                            {{ t('actions.edit', 'Edit') }}
                                         </Link>
                                     </Button>
                                 </td>

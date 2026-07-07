@@ -26,21 +26,21 @@
                         <CardTitle>{{
                             t(
                                 'platform.dashboard.recent_sites.title',
-                                'Recente sites',
+                                'Recent sites',
                             )
                         }}</CardTitle>
                         <CardDescription>
                             {{
                                 t(
                                     'platform.dashboard.recent_sites.description',
-                                    'Laatst aangemaakte tenant-sites en provisioningstatus.',
+                                    'Recently created tenant sites and provisioning status.',
                                 )
                             }}
                         </CardDescription>
                     </div>
                     <Button as-child>
                         <Link :href="route('platform.sites.create')">
-                            {{ t('platform.actions.new_site', 'Nieuwe site') }}
+                            {{ t('platform.actions.new_site', 'New site') }}
                         </Link>
                     </Button>
                 </CardHeader>
@@ -52,13 +52,13 @@
                             <thead class="bg-slate-50 text-slate-600">
                                 <tr>
                                     <th class="px-3 py-2 text-left font-medium">
-                                        {{ t('platform.columns.name', 'Naam') }}
+                                        {{ t('platform.columns.name', 'Name') }}
                                     </th>
                                     <th class="px-3 py-2 text-left font-medium">
                                         {{
                                             t(
                                                 'platform.columns.domain',
-                                                'Domein',
+                                                'Domain',
                                             )
                                         }}
                                     </th>
@@ -141,16 +141,19 @@ const props = defineProps({
 const { t } = useAdminTranslations('admin_common_ui');
 
 const statItems = computed(() => [
-    { label: 'Sites', value: props.stats.sites },
+    { label: t('platform.stats.sites', 'Sites'), value: props.stats.sites },
     {
-        label: t('platform.stats.active_sites', 'Actieve sites'),
+        label: t('platform.stats.active_sites', 'Active sites'),
         value: props.stats.active_sites,
     },
     {
-        label: t('platform.stats.domains', 'Domeinen'),
+        label: t('platform.stats.domains', 'Domains'),
         value: props.stats.domains,
     },
-    { label: 'Memberships', value: props.stats.memberships },
+    {
+        label: t('platform.stats.memberships', 'Memberships'),
+        value: props.stats.memberships,
+    },
     {
         label: t('platform.stats.platform_admins', 'Platform admins'),
         value: props.stats.platform_admins,

@@ -3,6 +3,7 @@
 namespace App\Actions\Admin\Base\Query;
 
 use App\Support\Tenancy\TenantDatabaseGuard;
+use App\Support\Tenancy\TenantSqlTablePrefixer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -34,7 +35,7 @@ class RunSqlQueryAction
         $safeRowsPerPage = max(1, min(200, $rowsPerPage));
         $safePage = max(1, $page);
 
-        $rows = DB::select($sql, self::normalizeBindings($bindings));
+        $rows = DB::select(app(TenantSqlTablePrefixer::class)->applyToSelectSql($sql), self::normalizeBindings($bindings));
         $asArray = collect($rows)
             ->map(static fn (object $row): array => (array) $row)
             ->values();

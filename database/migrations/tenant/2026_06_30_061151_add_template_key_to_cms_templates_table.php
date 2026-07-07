@@ -12,15 +12,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cms_templates', function (Blueprint $table) {
-            $table->string('template_key', 64)->nullable()->after('template_class')->index();
-        });
+        if (! Schema::hasTable('cms_templates')) {
+            return;
+        }
+
+        $hasTemplateKey = Schema::hasColumn('cms_templates', 'template_key');
+        $hasPurpose = Schema::hasColumn('cms_templates', 'purpose');
+
+        if (! $hasTemplateKey) {
+            Schema::table('cms_templates', function (Blueprint $table): void {
+                $table->string('template_key', 64)->nullable()->after('template_class')->index();
+            });
+        }
+
+        if (! $hasPurpose) {
+            return;
+        }
 
         DB::table('cms_templates')
             ->whereNull('template_key')
             ->update(['template_key' => DB::raw("CONCAT(template_class, '.', purpose)")]);
 
-        Schema::table('cms_templates', function (Blueprint $table) {
+        Schema::table('cms_templates', function (Blueprint $table): void {
             $table->dropIndex('cms_templates_default_lookup_index');
             $table->dropIndex('cms_templates_active_lookup_index');
             $table->dropIndex(['purpose']);

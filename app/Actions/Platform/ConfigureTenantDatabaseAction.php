@@ -12,6 +12,11 @@ class ConfigureTenantDatabaseAction
 {
     public function handle(Site $site): void
     {
+        Config::set('database.connections.tenant.url', $this->tenantConnectionValue($site, 'url', 'tenant_database_url'));
+        Config::set('database.connections.tenant.host', $this->tenantConnectionValue($site, 'host', 'tenant_database_host'));
+        Config::set('database.connections.tenant.port', $this->tenantConnectionValue($site, 'port', 'tenant_database_port'));
+        Config::set('database.connections.tenant.username', $this->tenantConnectionValue($site, 'username', 'tenant_database_username'));
+        Config::set('database.connections.tenant.password', $this->tenantConnectionValue($site, 'password', 'tenant_database_password'));
         Config::set('database.connections.tenant.database', $this->tenantDatabase($site));
         Config::set('database.connections.tenant.prefix', $this->tenantTablePrefix($site));
 
@@ -19,6 +24,17 @@ class ConfigureTenantDatabaseAction
         DB::setDefaultConnection('tenant');
 
         TenantContext::setSite($site);
+    }
+
+    private function tenantConnectionValue(Site $site, string $connectionKey, string $siteAttribute): mixed
+    {
+        $value = $site->{$siteAttribute};
+
+        if (filled($value)) {
+            return $value;
+        }
+
+        return config("tenancy.default_tenant_connection.{$connectionKey}");
     }
 
     private function tenantDatabase(Site $site): string

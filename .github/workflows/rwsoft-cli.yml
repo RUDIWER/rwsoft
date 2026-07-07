@@ -1,0 +1,118 @@
+name: RwSoft CLI
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    paths:
+      - 'tools/rwsoft-cli/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - 'docker-compose.yml'
+      - '.env.example'
+      - '.github/workflows/rwsoft-cli.yml'
+  pull_request:
+    paths:
+      - 'tools/rwsoft-cli/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - 'docker-compose.yml'
+      - '.env.example'
+      - '.github/workflows/rwsoft-cli.yml'
+
+jobs:
+  test:
+    name: Test CLI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/rwsoft-cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/rwsoft-cli/go.mod
+          cache-dependency-path: tools/rwsoft-cli/go.mod
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+
+      - name: Test
+        run: go test ./...
+
+      - name: Shell syntax
+        run: |
+          sh -n install.sh
+          sh -n build.sh
+
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile('install.ps1', [ref] $null, [ref] $errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+      - name: Build release binaries
+        run: |
+          out_dir="$(mktemp -d)"
+          RWSOFT_CLI_VERSION=ci RWSOFT_CLI_OUT_DIR="$out_dir" ./build.sh
+          test -f "$out_dir/checksums.txt"
+
+      - name: Docker Compose config
+        working-directory: .
+        run: docker compose config
+
+  build:
+    name: Build CLI Binaries
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: tools/rwsoft-cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/rwsoft-cli/go.mod
+          cache-dependency-path: tools/rwsoft-cli/go.mod
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        env:
+          RWSOFT_CLI_VERSION: ${{ steps.version.outputs.version }}
+        run: ./build.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rwsoft-cli-${{ steps.version.outputs.version }}
+          path: tools/rwsoft-cli/dist/*
+          if-no-files-found: error
+
+      - name: Upload release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tools/rwsoft-cli/dist/*

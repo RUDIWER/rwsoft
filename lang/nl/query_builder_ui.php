@@ -296,6 +296,7 @@ return [
         'empty_table' => 'Nog geen tabelpreview geladen. Klik op Tabel.',
         'query_inactive' => 'Deze query is niet actief.',
         'query_invalid' => 'Query is ongeldig.',
+        'database_qualified_tables_forbidden' => 'Database-gekwalificeerde tabelnamen zijn niet toegestaan.',
         'query_cannot_run' => 'Deze query kan niet uitgevoerd worden.',
         'missing_bindings_with_list' => 'Ontbrekende query variabelen: :bindings.',
         'query_failed_with_error' => 'Query uitvoeren mislukt: :error',

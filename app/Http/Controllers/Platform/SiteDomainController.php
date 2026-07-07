@@ -43,6 +43,6 @@ class SiteDomainController extends Controller
 
         return redirect()
             ->route('platform.sites.edit', ['id' => $site->id])
-            ->with('status', 'Domein succesvol toegevoegd.');
+            ->with('status', __('admin_common_ui.platform.sites.flash.domain_added'));
     }
 }
