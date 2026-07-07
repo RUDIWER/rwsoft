@@ -30,10 +30,10 @@ jobs:
         working-directory: tools/rwsoft-cli
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: tools/rwsoft-cli/go.mod
           cache-dependency-path: tools/rwsoft-cli/go.mod
@@ -85,10 +85,10 @@ jobs:
         working-directory: tools/rwsoft-cli
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: tools/rwsoft-cli/go.mod
           cache-dependency-path: tools/rwsoft-cli/go.mod
