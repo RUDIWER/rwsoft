@@ -25,6 +25,276 @@ The project is currently in active development. The codebase is being prepared f
 - Workflow support for automated actions and mail/report flows.
 - Translation-aware admin UI and public website text management.
 
+## Current Capabilities
+
+This section describes the current feature set for the `0.5.x` development line. Some areas are already usable in the admin UI, while others are platform services that support generated screens, CMS runtime rendering or deployment workflows.
+
+### Platform And Tenancy
+
+- Central platform database for users, sites, domains and site memberships.
+- Tenant database runtime for site-specific CMS, admin and public data.
+- Host-based site resolution through tenant middleware.
+- Active tenant context for admin authorization, CMS rendering, locale handling and tenant database access.
+- Site provisioning support with central site records and tenant database configuration.
+- Tenant-aware admin routing under `/admin` and public tenant routing for the active host.
+- Separation between central platform data and tenant-owned CMS/runtime data.
+- Ongoing design for both separate tenant databases and shared prefixed tenant tables for Laravel Cloud style deployments.
+
+### Authentication And Account Security
+
+- Laravel/Fortify based admin authentication.
+- Admin login, logout, password reset, email verification and password confirmation routes.
+- Admin user management screens.
+- Admin role and permission management screens.
+- Route-level authorization middleware for admin access.
+- Tenant-aware ACL resolution when a tenant context is active.
+- Inertia-shared route permission data for admin menu visibility.
+- Public site account system for tenant website users.
+- Public account registration, login, logout and password reset.
+- Public email verification flow.
+- Public two-factor authentication challenge, enable, confirm and disable flows.
+- Public recovery codes and QR code endpoints for two-factor authentication.
+- Public user profile, security and session management pages.
+
+### Admin Interface Foundation
+
+- Inertia/Vue admin layout with shared app metadata.
+- Admin and platform layouts show the current application version.
+- Admin locale switching support.
+- Shared translation props for admin UI text.
+- Reusable shadcn/Tailwind based admin UI components.
+- Shared form back button and save button conventions.
+- Shared flash message handling.
+- Shared admin form and table design standards documented in project manuals.
+- Flat full-width admin card layout standards for current and future screens.
+
+### CMS Content Management
+
+- Page management with multilingual content records.
+- Post/blog management with categories and tags.
+- Category and tag management with translation flows.
+- Menu and menu item management.
+- Redirect management.
+- CMS language management.
+- CMS settings management.
+- CMS health/readiness checks.
+- CMS content statistics and content usage support.
+- Content translation matrix support for reviewing existing and missing translations.
+- AI translation review metadata and review banner support.
+- Revision snapshots and restore flows for pages, posts, categories, tags, forms, menus, layouts, templates and emails.
+
+### Layout Builder And Site Builder
+
+- CMS layout management.
+- Layout zones and placement slots.
+- Section and block placement support.
+- Block definition management.
+- Structured block content editing.
+- Repeater field editing for structured block data.
+- Slot definition editing.
+- Template data forms.
+- Background picker, color picker and box spacing editors.
+- Placement settings dialog for layout and block configuration.
+- Stable CMS HTML anchor generation for layouts, sections and placements.
+- Layout revision snapshots and restore support.
+- Preview rendering support for CMS placements.
+
+### Themes, Branding And Styling
+
+- Theme management screens.
+- Theme CSS compilation from structured settings.
+- Theme CSS validation.
+- Theme publishing flow.
+- Active and preview theme CSS routes.
+- Theme export and import actions.
+- Color palette support.
+- Logo and favicon storage actions.
+- System country flag synchronization and copying to tenant media.
+
+### Media And Downloads
+
+- Media library management.
+- Media folder management.
+- Media picker and media picker panel components.
+- Image variant generation.
+- Image crop/edit asset creation.
+- Context-aware media folder creation.
+- Media asset usage detection.
+- Copying media assets into CMS context folders.
+- Download management for public or protected files.
+- Download group and folder management.
+- Context-aware download folder creation.
+- Public download routes with optional folder unlock flow.
+
+### CMS Forms And Submissions
+
+- CMS form management.
+- Form translation creation flow.
+- Form revision snapshot and restore support.
+- Public form submission support.
+- Admin form submission overview.
+- Submission mail sending action.
+- Form-related public text and fixed UI translation support.
+
+### CMS Mail
+
+- CMS email management screens.
+- CMS mail template management screens.
+- Email content validation action.
+- Mail content contract builder.
+- CMS email rendering action.
+- Mail template and email revision snapshot and restore support.
+- System email resolution support.
+
+### Public Website Runtime
+
+- Tenant-aware public homepage rendering.
+- Localized public pages through locale-prefixed routes.
+- Public search and search result endpoints.
+- Public robots.txt route.
+- Public sitemap index, page, post, category and tag sitemaps.
+- Public llms.txt route.
+- Public PDF route for localized home pages.
+- Public downloads with signed/controlled access patterns.
+- Public tracking middleware for public requests.
+- Public fixed text rendering through database-backed public text records.
+
+### Documentation And Knowledge Content
+
+- CMS documentation collections.
+- CMS documentation pages.
+- Documentation version editing.
+- Collection page management.
+- Demo documentation data installation action.
+- Docs module installation action.
+
+### Search And SEO
+
+- CMS search controller and public search result routes.
+- Search document reindex action.
+- SEO rule validation action.
+- Sitemap generation routes.
+- Robots.txt and llms.txt support.
+- Slug redirect health action for CMS publish readiness.
+- Category and tag landing page synchronization actions.
+
+### Translations And Public Texts
+
+- Admin translation table.
+- Public text translation management.
+- Public text key synchronization action.
+- Content translation creation flows for pages, posts, categories, tags, forms, layouts, templates, menu items and documentation pages.
+- Admin security translation synchronization action for ACL-related labels.
+- Source-language development policy with runtime locale selection.
+- Database-backed public text translation for fixed public website UI text.
+
+### Screen Builder And Runtime Actions
+
+- Schema-driven screen runtime foundation.
+- Runtime action invocation controller.
+- Shared node, form and validation infrastructure for generated/admin screens.
+- Client validation rule editor.
+- Versioned client-side validation rule management.
+- Extended client validation rules for project-specific field checks.
+- Server-side validation remains authoritative for persisted data.
+
+### RwTable Data Tables
+
+- Local Vue RwTable implementation for admin tables.
+- Backend RwTable action bridge for server-side data handling.
+- Filtering, sorting, pagination and global search support.
+- Managed/server-side table data support.
+- Inline update, inline create, inline delete and manual ordering support.
+- Saved chart configurations per user/table.
+- Saved Excel export configurations per user/table.
+- RwTable package routes for charts and export configuration storage.
+- Translation support for RwTable UI strings.
+- Admin table standards for full-width flat cards, ID click-through and default row options.
+
+### QueryBuilder, Reports And Exports
+
+- Query overview and query form screens.
+- Builder-mode query construction.
+- SQL-mode query editing and inspection.
+- Safe SELECT/CTE validation for manual SQL.
+- Runtime query execution.
+- Table output mode.
+- Report output mode.
+- Excel output mode.
+- Query result table preview.
+- Query chart view support.
+- Runtime selection/binding dialog support.
+- Binding source option support for dynamic parameter selection.
+- Query-to-document rendering for DOCX/ODT templates.
+- Query-to-spreadsheet rendering for XLSX/ODS templates.
+- Office-to-PDF conversion action.
+- Legacy report route compatibility through query report controllers.
+
+### RWDbDiagram And Database Tools
+
+- Database diagram/admin inspection screen.
+- SQL editor for controlled admin database queries.
+- Table data view and table form screens.
+- Table export and full backup support.
+- Backup dialog UI.
+- Database backup log overview.
+- Database schema inspection through platform tooling.
+- Database access is protected by admin permissions and database access flags.
+- Destructive database operations remain restricted by project policy.
+
+### Site Packages And Starters
+
+- CMS site package ZIP builder.
+- CMS site package ZIP preview.
+- CMS site package ZIP import.
+- CMS site package activation flow.
+- CMS starter ZIP builder from selected content.
+- Example CMS starter ZIP builder.
+- CMS starter ZIP import action.
+- Starter/site package direction for future demo-site installation profiles.
+
+### Workflows And Automation
+
+- Runtime action invocation foundation.
+- Query/report data can be used by workflow/report integrations.
+- Reusable admin/base actions for rendering placeholders, resolving help content and running query/report flows.
+- Placeholder rendering action with whitelisted dot-notation placeholders.
+- Background-ready service/action structure for scheduled or queued automation.
+
+### Versioning, Release And Repository Automation
+
+- `VERSION` file as the application version source.
+- `php artisan app:version` command.
+- Application name, version label and commit hash shared with Inertia.
+- Admin and platform UI version display.
+- Git pre-commit hook for automatic patch version bumps.
+- Git post-commit hook for automatic `vX.Y.Z` tag creation.
+- GitHub release workflow for version tags.
+- Obsolete RWTable mirror workflows have been removed because the old package split paths are no longer present.
+
+### Security Posture
+
+- Admin authentication and route authorization.
+- Tenant-aware ACL checks.
+- Public account authentication separated from admin authentication.
+- QueryBuilder SQL validation for safe query execution.
+- FormRequest validation for RwTable chart/export configuration routes.
+- User-scoped saved RwTable chart/export records.
+- Controlled public download handling.
+- Placeholder rendering avoids arbitrary Blade/PHP evaluation on database text.
+- Public text and CMS content rendering flows are designed around explicit translation/content records.
+- Project policy forbids destructive database cleanup without explicit approval.
+
+### Planned Installer Work
+
+- System bootstrapper for machines without an existing PHP/Laravel setup.
+- Docker installation profile.
+- Lerd installation profile.
+- Laravel Herd installation profile.
+- Laravel Cloud installation profile.
+- Internal Laravel installer command after runtime setup.
+- Optional demo-site installation profile based on starter/site package imports.
+
 ## Repository Structure
 
 ```text
