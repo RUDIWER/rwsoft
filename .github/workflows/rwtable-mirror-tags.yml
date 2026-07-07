@@ -1,0 +1,37 @@
+name: RWTable Mirror Tags
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Tag to mirror (for manual run)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mirror-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "rwtable-bot"
+          git config user.email "rwtable-bot@users.noreply.github.com"
+
+      - name: Mirror package tags
+        env:
+          RWTABLE_MIRROR_TOKEN: ${{ secrets.RWTABLE_MIRROR_TOKEN }}
+          RWTABLE_VUE_REPO: RUDIWER/rwtable-vue
+          RWTABLE_LARAVEL_REPO: RUDIWER/rwtable-laravel
+          TAG_NAME: ${{ github.event.inputs.tag_name || github.ref_name }}
+        run: bash scripts/split/mirror-tag.sh

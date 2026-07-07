@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Tag to release
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          tag_name="${{ github.event.inputs.tag_name || github.ref_name }}"
+          echo "name=$tag_name" >> "$GITHUB_OUTPUT"
+          echo "version=${tag_name#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate VERSION
+        run: |
+          version_file="$(tr -d '[:space:]' < VERSION)"
+          if [ "$version_file" != "${{ steps.tag.outputs.version }}" ]; then
+            echo "VERSION ($version_file) does not match tag (${{ steps.tag.outputs.name }})." >&2
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release already exists for $TAG_NAME."
+            exit 0
+          fi
+
+          gh release create "$TAG_NAME" --title "$TAG_NAME" --generate-notes

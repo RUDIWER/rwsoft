@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${RW_SKIP_VERSION_BUMP:-}" = "1" ]; then
+    exit 0
+fi
+
+if [ ! -f VERSION ]; then
+    printf '%s\n' 'VERSION file is missing. Commit aborted.' >&2
+    exit 1
+fi
+
+if git diff --cached --name-only -- VERSION | grep -qx 'VERSION'; then
+    printf '%s\n' 'VERSION was changed manually; automatic patch bump skipped.'
+    exit 0
+fi
+
+version=$(tr -d '[:space:]' < VERSION)
+
+case "$version" in
+    *[!0-9.]*|*.*.*.*|.*|*.|*..*)
+        printf 'Invalid VERSION value: %s\n' "$version" >&2
+        exit 1
+        ;;
+esac
+
+IFS=. read -r major minor patch <<EOF
+$version
+EOF
+
+if [ -z "${major:-}" ] || [ -z "${minor:-}" ] || [ -z "${patch:-}" ]; then
+    printf 'Invalid VERSION value: %s\n' "$version" >&2
+    exit 1
+fi
+
+patch=$((patch + 1))
+next_version="$major.$minor.$patch"
+
+printf '%s\n' "$next_version" > VERSION
+git add VERSION
+
+printf 'Bumped application version: %s -> %s\n' "$version" "$next_version"

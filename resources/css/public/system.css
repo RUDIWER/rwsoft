@@ -1,0 +1,8 @@
+@import '@mdi/font/css/materialdesignicons.min.css';
+@import './system/tokens.css';
+@import './system/base.css';
+@import './system/layout.css';
+@import './system/navigation.css';
+@import './system/blocks.css';
+@import './system/forms.css';
+@import './system/posts.css';

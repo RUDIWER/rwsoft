@@ -1,0 +1,197 @@
+.rw-public-form-block {
+    min-width: 0;
+}
+
+.rw-public-form {
+    display: grid;
+    gap: 1.2rem;
+}
+
+.rw-public-form__intro {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.rw-public-form__title {
+    margin: 0;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.rw-public-form-block .rw-public-form__title {
+    font-family: inherit;
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: normal;
+    line-height: 1.2;
+}
+
+.rw-public-form__description {
+    margin: 0;
+    color: var(--rw-public-color-muted);
+    line-height: 1.65;
+}
+
+.rw-public-form__grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.rw-public-placement--form-style .rw-public-form__grid {
+    gap: var(--rw-public-form-field-gap, 1rem);
+}
+
+.rw-public-form__field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.rw-public-form__field--half {
+    min-width: 0;
+}
+
+.rw-public-form__label {
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.rw-public-placement--form-style .rw-public-form__label {
+    font-weight: var(--rw-public-form-label-weight, 750);
+}
+
+.rw-public-form__required,
+.rw-public-form__error {
+    color: var(--rw-public-color-error);
+}
+
+.rw-public-form__help {
+    color: var(--rw-public-color-muted);
+    font-size: 0.86rem;
+}
+
+.rw-public-form__input,
+.rw-public-form__textarea,
+.rw-public-form__select {
+    min-height: 3rem;
+    width: 100%;
+    border: 1px solid var(--rw-public-color-border);
+    border-radius: var(--rw-public-radius-sm);
+    background: var(--rw-public-color-surface);
+    color: var(--rw-public-color-text);
+    font: inherit;
+    padding: 0.75rem 0.9rem;
+}
+
+.rw-public-placement--form-style .rw-public-form__input,
+.rw-public-placement--form-style .rw-public-form__textarea,
+.rw-public-placement--form-style .rw-public-form__select {
+    border-color: var(
+        --rw-public-form-input-border-color,
+        var(--rw-public-color-border)
+    );
+    border-radius: var(
+        --rw-public-form-input-radius,
+        var(--rw-public-radius-sm)
+    );
+    background: var(
+        --rw-public-form-input-background,
+        var(--rw-public-color-surface)
+    );
+    color: var(--rw-public-form-input-color, var(--rw-public-color-text));
+}
+
+.rw-public-form__input:focus,
+.rw-public-form__textarea:focus,
+.rw-public-form__select:focus {
+    border-color: var(--rw-public-color-primary);
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--rw-public-color-primary) 18%, transparent);
+    outline: none;
+}
+
+.rw-public-form__input--number,
+.rw-public-form__input--date,
+.rw-public-form__input--time {
+    max-width: 22rem;
+}
+
+.rw-public-form__textarea {
+    min-height: 9rem;
+    resize: vertical;
+}
+
+.rw-public-form__checkbox {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    color: var(--rw-public-color-muted);
+}
+
+.rw-public-form__success {
+    border-radius: var(--rw-public-radius-sm);
+    background: var(--rw-public-color-success-bg);
+    color: var(--rw-public-color-success);
+    font-weight: 750;
+    padding: 0.85rem 1rem;
+}
+
+.rw-public-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.rw-public-placement--form-style .rw-public-form__actions {
+    justify-content: var(--rw-public-form-submit-justify, flex-start);
+}
+
+.rw-public-placement--form-submit-stretch .rw-public-form__submit {
+    width: 100%;
+}
+
+.rw-public-form__submit {
+    min-height: 3rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--rw-public-color-primary);
+    color: var(--rw-public-color-primary-contrast);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 850;
+    padding-inline: 1.25rem;
+}
+
+.rw-public-placement--form-submit-outline .rw-public-form__submit {
+    border: 1px solid var(--rw-public-color-primary);
+    background: transparent;
+    color: var(--rw-public-color-primary);
+}
+
+.rw-public-placement--form-submit-ghost .rw-public-form__submit {
+    border: 0;
+    background: transparent;
+    color: var(--rw-public-color-primary);
+}
+
+.rw-public-form__submit[disabled] {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.rw-public-form__honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+@media (min-width: 760px) {
+    .rw-public-form__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rw-public-form__field:not(.rw-public-form__field--half) {
+        grid-column: 1 / -1;
+    }
+}

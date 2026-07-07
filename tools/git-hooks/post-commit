@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${RW_SKIP_VERSION_TAG:-}" = "1" ]; then
+    exit 0
+fi
+
+if [ ! -f VERSION ]; then
+    exit 0
+fi
+
+version=$(tr -d '[:space:]' < VERSION)
+
+case "$version" in
+    *[!0-9.]*|*.*.*.*|.*|*.|*..*)
+        printf 'Invalid VERSION value, tag skipped: %s\n' "$version" >&2
+        exit 0
+        ;;
+esac
+
+tag="v$version"
+current_commit=$(git rev-parse HEAD)
+
+if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+    tag_commit=$(git rev-list -n 1 "$tag")
+
+    if [ "$tag_commit" = "$current_commit" ]; then
+        printf 'Version tag already exists on this commit: %s\n' "$tag"
+        exit 0
+    fi
+
+    printf 'Version tag already exists on another commit, tag skipped: %s\n' "$tag" >&2
+    exit 0
+fi
+
+git tag "$tag"
+printf 'Created version tag: %s\n' "$tag"

@@ -1,0 +1,32 @@
+name: RWTable Split Sync
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  split-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "rwtable-bot"
+          git config user.email "rwtable-bot@users.noreply.github.com"
+
+      - name: Split and sync package mirrors
+        env:
+          RWTABLE_MIRROR_TOKEN: ${{ secrets.RWTABLE_MIRROR_TOKEN }}
+          RWTABLE_VUE_REPO: RUDIWER/rwtable-vue
+          RWTABLE_LARAVEL_REPO: RUDIWER/rwtable-laravel
+          DEFAULT_BRANCH: main
+        run: bash scripts/split/sync-mirrors.sh
