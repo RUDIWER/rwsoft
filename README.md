@@ -369,14 +369,16 @@ rwsoft install --help
 
 GitHub releases publish prebuilt binaries for:
 
-| Platform | CPU             | Asset                      |
-| -------- | --------------- | -------------------------- |
-| Linux    | x64 / amd64     | `rwsoft-linux-amd64`       |
-| Linux    | arm64 / aarch64 | `rwsoft-linux-arm64`       |
-| macOS    | Intel           | `rwsoft-darwin-amd64`      |
-| macOS    | Apple Silicon   | `rwsoft-darwin-arm64`      |
-| Windows  | x64 / amd64     | `rwsoft-windows-amd64.exe` |
-| Windows  | arm64           | `rwsoft-windows-arm64.exe` |
+| Platform              | CPU             | Asset                      |
+| --------------------- | --------------- | -------------------------- |
+| Linux                 | x64 / amd64     | `rwsoft-linux-amd64`       |
+| Linux                 | arm64 / aarch64 | `rwsoft-linux-arm64`       |
+| macOS                 | Intel           | `rwsoft-darwin-amd64`      |
+| macOS                 | Apple Silicon   | `rwsoft-darwin-arm64`      |
+| Windows               | x64 / amd64     | `rwsoft-windows-amd64.exe` |
+| Windows               | arm64           | `rwsoft-windows-arm64.exe` |
+| Linux/macOS bootstrap | detected        | `install.sh`               |
+| Windows bootstrap     | detected        | `install.ps1`              |
 
 Always prefer `https://github.com/RUDIWER/rwsoft/releases/latest` unless you intentionally need a fixed version.
 
@@ -414,10 +416,10 @@ Run a Docker based install:
     --no-interaction
 ```
 
-Optional one-line bootstrap on Linux can use the repository script. It downloads the matching release binary, verifies the checksum and then forwards all arguments to `rwsoft install`:
+Optional one-line bootstrap on Linux can use the release script. It downloads the matching release binary, verifies the checksum and then forwards all arguments to `rwsoft install`:
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.sh)" -- ./rwsoft-app \
+sh -c "$(curl -fsSL https://github.com/RUDIWER/rwsoft/releases/latest/download/install.sh)" -- ./rwsoft-app \
     --profile=docker \
     --platform-admin-email=admin@rwsoft.local \
     --site-domain=rwsoft.localhost \
@@ -475,7 +477,7 @@ Install with Docker on macOS:
 The same shell bootstrap script works on macOS:
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.sh)" -- ~/Herd/rwsoft \
+sh -c "$(curl -fsSL https://github.com/RUDIWER/rwsoft/releases/latest/download/install.sh)" -- ~/Herd/rwsoft \
     --profile=herd \
     --site-domain=rwsoft.test \
     --no-interaction
@@ -528,11 +530,11 @@ Install with Herd on Windows when Herd and the required PHP/database tooling are
     --no-interaction
 ```
 
-The PowerShell bootstrap script is also available in the repository and downloads the matching Windows binary, verifies the checksum and forwards all arguments to `rwsoft install`:
+The PowerShell bootstrap script is also available as a release asset and downloads the matching Windows binary, verifies the checksum and forwards all arguments to `rwsoft install`:
 
 ```powershell
 Invoke-WebRequest `
-    -Uri "https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.ps1" `
+    -Uri "https://github.com/RUDIWER/rwsoft/releases/latest/download/install.ps1" `
     -OutFile "install-rwsoft.ps1"
 
 .\install-rwsoft.ps1 .\rwsoft-app `

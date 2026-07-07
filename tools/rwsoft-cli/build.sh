@@ -11,7 +11,7 @@ if ! command -v go >/dev/null 2>&1; then
 fi
 
 mkdir -p "$OUT_DIR"
-rm -f "$OUT_DIR"/rwsoft-* "$OUT_DIR"/checksums.txt
+rm -f "$OUT_DIR"/rwsoft-* "$OUT_DIR"/checksums.txt "$OUT_DIR"/install.sh "$OUT_DIR"/install.ps1
 
 build_one() {
     os="$1"
@@ -33,12 +33,15 @@ build_one darwin arm64
 build_one windows amd64
 build_one windows arm64
 
+cp install.sh "$OUT_DIR/install.sh"
+cp install.ps1 "$OUT_DIR/install.ps1"
+
 (
     cd "$OUT_DIR"
     if command -v sha256sum >/dev/null 2>&1; then
-        sha256sum rwsoft-* > checksums.txt
+        sha256sum install.sh install.ps1 rwsoft-* > checksums.txt
     elif command -v shasum >/dev/null 2>&1; then
-        shasum -a 256 rwsoft-* > checksums.txt
+        shasum -a 256 install.sh install.ps1 rwsoft-* > checksums.txt
     else
         echo "sha256sum or shasum is required to create checksums." >&2
         exit 1

@@ -64,6 +64,10 @@ jobs:
           out_dir="$(mktemp -d)"
           RWSOFT_CLI_VERSION=ci RWSOFT_CLI_OUT_DIR="$out_dir" ./build.sh
           test -f "$out_dir/checksums.txt"
+          test -f "$out_dir/install.sh"
+          test -f "$out_dir/install.ps1"
+          grep -q '  install.sh$' "$out_dir/checksums.txt"
+          grep -q '  install.ps1$' "$out_dir/checksums.txt"
 
       - name: Docker Compose config
         working-directory: .
