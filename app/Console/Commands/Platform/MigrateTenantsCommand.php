@@ -35,7 +35,8 @@ class MigrateTenantsCommand extends Command
         }
 
         foreach ($sites as $site) {
-            $this->line("Tenant migraties voor [{$site->name}] ({$site->tenant_database})...");
+            $prefix = filled($site->tenant_table_prefix) ? ", prefix {$site->tenant_table_prefix}" : '';
+            $this->line("Tenant migraties voor [{$site->name}] ({$site->tenant_database}{$prefix})...");
 
             $configureTenantDatabase->handle($site);
 

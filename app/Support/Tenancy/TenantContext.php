@@ -29,6 +29,11 @@ class TenantContext
         return self::$site?->tenant_database;
     }
 
+    public static function tablePrefix(): ?string
+    {
+        return self::$site?->tenant_table_prefix;
+    }
+
     public static function isResolved(): bool
     {
         return self::$site instanceof Site;

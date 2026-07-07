@@ -97,8 +97,14 @@ return [
     'errors' => [
         'not_tenant_connection' => 'La connexion de base active nest pas une connexion tenant.',
         'tenant_context_inactive' => 'Le contexte tenant nest pas actif.',
+        'tenant_database_already_used' => 'Cette base tenant est deja utilisee par un autre site.',
         'tenant_database_config_mismatch' => 'La configuration de la base tenant ne correspond pas au tenant actif.',
         'tenant_database_connection_mismatch' => 'La connexion tenant active utilise la mauvaise base de donnees.',
+        'tenant_database_must_not_be_central' => 'Une base tenant separee ne peut pas etre la base centrale.',
+        'tenant_database_required' => 'Choisissez le nom de la base tenant existante.',
+        'tenant_table_prefix_already_used' => 'Ce prefixe de tables tenant est deja utilise par un autre site.',
+        'tenant_table_prefix_config_mismatch' => 'La configuration du prefixe des tables tenant ne correspond pas au tenant actif.',
+        'tenant_table_prefix_invalid' => 'Le prefixe des tables tenant nest pas valide.',
     ],
     'feedback' => [
         'settings_saved' => 'Parametres enregistres.',

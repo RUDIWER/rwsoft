@@ -19,6 +19,9 @@ class Site extends Model
         'name',
         'slug',
         'tenant_database',
+        'tenant_table_prefix',
+        'tenant_database_mode',
+        'tenant_provisioning_mode',
         'status',
         'created_by',
         'provisioned_at',
@@ -43,6 +46,29 @@ class Site extends Model
     public function primaryDomain(): HasOne
     {
         return $this->hasOne(SiteDomain::class)->where('is_primary', true);
+    }
+
+    public function tenantDatabaseMode(): string
+    {
+        $mode = (string) ($this->tenant_database_mode ?: config('tenancy.default_database_mode', 'separate'));
+
+        return in_array($mode, (array) config('tenancy.database_modes', []), true) ? $mode : 'separate';
+    }
+
+    public function tenantProvisioningMode(): string
+    {
+        $mode = (string) ($this->tenant_provisioning_mode ?: config('tenancy.default_provisioning_mode', 'create_database'));
+
+        if ($this->tenantDatabaseMode() === 'shared_prefixed') {
+            return 'shared_prefixed';
+        }
+
+        return in_array($mode, (array) config('tenancy.provisioning_modes', []), true) ? $mode : 'create_database';
+    }
+
+    public function usesSharedPrefixedTenantDatabase(): bool
+    {
+        return $this->tenantDatabaseMode() === 'shared_prefixed';
     }
 
     protected function casts(): array

@@ -97,8 +97,14 @@ return [
     'errors' => [
         'not_tenant_connection' => 'Die aktive Datenbankverbindung ist keine Tenant-Verbindung.',
         'tenant_context_inactive' => 'Tenant-Kontext ist nicht aktiv.',
+        'tenant_database_already_used' => 'Diese Tenant-Datenbank wird bereits von einer anderen Site verwendet.',
         'tenant_database_config_mismatch' => 'Die Tenant-Datenbankkonfiguration stimmt nicht mit dem aktiven Tenant ueberein.',
         'tenant_database_connection_mismatch' => 'Die aktive Tenant-Verbindung verwendet die falsche Datenbank.',
+        'tenant_database_must_not_be_central' => 'Eine separate Tenant-Datenbank darf nicht die zentrale Datenbank sein.',
+        'tenant_database_required' => 'Wahlen Sie den Namen der bestehenden Tenant-Datenbank.',
+        'tenant_table_prefix_already_used' => 'Dieser Tenant-Tabellenpraefix wird bereits von einer anderen Site verwendet.',
+        'tenant_table_prefix_config_mismatch' => 'Die Tenant-Tabellenpraefixkonfiguration stimmt nicht mit dem aktiven Tenant ueberein.',
+        'tenant_table_prefix_invalid' => 'Der Tenant-Tabellenpraefix ist ungueltig.',
     ],
     'feedback' => [
         'settings_saved' => 'Einstellungen gespeichert.',

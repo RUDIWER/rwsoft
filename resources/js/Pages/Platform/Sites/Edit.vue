@@ -103,6 +103,119 @@
                         </div>
 
                         <div
+                            v-if="!isEditMode"
+                            class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3"
+                        >
+                            <div>
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{
+                                        t(
+                                            'platform.sites.form.tenant_storage.title',
+                                            'Tenant data storage',
+                                        )
+                                    }}
+                                </div>
+                                <p class="mt-1 text-xs text-slate-600">
+                                    {{
+                                        t(
+                                            'platform.sites.form.tenant_storage.description',
+                                            'Choose how this site stores tenant tables. The existing separate database setup remains the default.',
+                                        )
+                                    }}
+                                </p>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <label
+                                    v-for="option in tenantStorageOptions"
+                                    :key="option.value"
+                                    class="flex gap-3 rounded-md border border-slate-200 bg-white p-3 text-sm shadow-none"
+                                >
+                                    <input
+                                        v-model="siteForm.tenant_storage_option"
+                                        type="radio"
+                                        name="tenant_storage_option"
+                                        :value="option.value"
+                                        class="mt-1 h-4 w-4 border-slate-300 text-blue-600"
+                                    />
+                                    <span class="grid gap-1">
+                                        <span
+                                            class="font-medium text-slate-900"
+                                        >
+                                            {{ option.label }}
+                                        </span>
+                                        <span class="text-xs text-slate-600">
+                                            {{ option.description }}
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div
+                                v-if="usesNamedTenantDatabase"
+                                class="grid gap-2"
+                            >
+                                <Label for="tenant_database">{{
+                                    t(
+                                        'platform.sites.form.tenant_database',
+                                        'Tenant database',
+                                    )
+                                }}</Label>
+                                <Input
+                                    id="tenant_database"
+                                    v-model="siteForm.tenant_database"
+                                    :required="usesExistingTenantDatabase"
+                                    :placeholder="tenantDatabasePlaceholder"
+                                />
+                                <p class="text-xs text-slate-500">
+                                    {{ tenantDatabaseHelp }}
+                                </p>
+                                <p
+                                    v-if="siteForm.errors.tenant_database"
+                                    class="text-sm text-red-600"
+                                >
+                                    {{ siteForm.errors.tenant_database }}
+                                </p>
+                            </div>
+
+                            <div
+                                v-if="usesSharedPrefixedTenantDatabase"
+                                class="grid gap-2"
+                            >
+                                <Label for="tenant_table_prefix">{{
+                                    t(
+                                        'platform.sites.form.tenant_table_prefix',
+                                        'Tenant table prefix',
+                                    )
+                                }}</Label>
+                                <Input
+                                    id="tenant_table_prefix"
+                                    v-model="siteForm.tenant_table_prefix"
+                                    :placeholder="
+                                        t(
+                                            'platform.sites.form.tenant_table_prefix_placeholder',
+                                            't_site_',
+                                        )
+                                    "
+                                />
+                                <p class="text-xs text-slate-500">
+                                    {{
+                                        t(
+                                            'platform.sites.form.tenant_table_prefix_help',
+                                            'Optional. Leave empty to generate a safe prefix from the site slug.',
+                                        )
+                                    }}
+                                </p>
+                                <p
+                                    v-if="siteForm.errors.tenant_table_prefix"
+                                    class="text-sm text-red-600"
+                                >
+                                    {{ siteForm.errors.tenant_table_prefix }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
                             v-if="isEditMode"
                             class="rounded-lg border border-slate-200 p-3"
                         >
@@ -118,6 +231,38 @@
                             </div>
                             <div class="mt-1 font-mono text-sm text-slate-900">
                                 {{ site.tenant_database }}
+                            </div>
+                            <div
+                                v-if="site.tenant_table_prefix"
+                                class="mt-2 text-xs text-slate-500"
+                            >
+                                {{
+                                    t(
+                                        'platform.sites.form.tenant_table_prefix',
+                                        'Tenant table prefix',
+                                    )
+                                }}:
+                                <span class="font-mono text-slate-900">{{
+                                    site.tenant_table_prefix
+                                }}</span>
+                            </div>
+                            <div class="mt-2 text-xs text-slate-500">
+                                {{
+                                    t(
+                                        'platform.sites.form.tenant_database_mode',
+                                        'Database mode',
+                                    )
+                                }}:
+                                {{ site.tenant_database_mode }}
+                            </div>
+                            <div class="mt-2 text-xs text-slate-500">
+                                {{
+                                    t(
+                                        'platform.sites.form.tenant_provisioning_mode',
+                                        'Provisioning mode',
+                                    )
+                                }}:
+                                {{ site.tenant_provisioning_mode }}
                             </div>
                             <div class="mt-2 text-xs text-slate-500">
                                 {{ t('platform.columns.status', 'Status') }}:
@@ -468,7 +613,77 @@ const siteForm = useForm({
     slug: props.site?.slug ?? '',
     primary_domain: '',
     first_admin_email: '',
+    tenant_storage_option: 'create_database',
+    tenant_database: '',
+    tenant_table_prefix: '',
 });
+
+const tenantStorageOptions = computed(() => [
+    {
+        value: 'create_database',
+        label: t(
+            'platform.sites.form.tenant_storage.create_database.label',
+            'Create a new tenant database',
+        ),
+        description: t(
+            'platform.sites.form.tenant_storage.create_database.description',
+            'Current default behavior. RwSoft creates a separate database for this site and runs tenant migrations there.',
+        ),
+    },
+    {
+        value: 'existing_database',
+        label: t(
+            'platform.sites.form.tenant_storage.existing_database.label',
+            'Use an existing separate tenant database',
+        ),
+        description: t(
+            'platform.sites.form.tenant_storage.existing_database.description',
+            'RwSoft will not create a database. It will connect to the existing database and add tenant tables through migrations.',
+        ),
+    },
+    {
+        value: 'shared_prefixed',
+        label: t(
+            'platform.sites.form.tenant_storage.shared_prefixed.label',
+            'Use the same database with a table prefix',
+        ),
+        description: t(
+            'platform.sites.form.tenant_storage.shared_prefixed.description',
+            'For single-database hosting. Tenant tables are created in the shared database with a unique prefix.',
+        ),
+    },
+]);
+
+const usesSharedPrefixedTenantDatabase = computed(
+    () => siteForm.tenant_storage_option === 'shared_prefixed',
+);
+const usesExistingTenantDatabase = computed(
+    () => siteForm.tenant_storage_option === 'existing_database',
+);
+const usesNamedTenantDatabase = computed(
+    () =>
+        usesSharedPrefixedTenantDatabase.value ||
+        usesExistingTenantDatabase.value,
+);
+const tenantDatabasePlaceholder = computed(() =>
+    usesSharedPrefixedTenantDatabase.value
+        ? t('platform.sites.form.shared_database_placeholder', 'rwsoft')
+        : t(
+              'platform.sites.form.existing_database_placeholder',
+              'existing_tenant_db',
+          ),
+);
+const tenantDatabaseHelp = computed(() =>
+    usesSharedPrefixedTenantDatabase.value
+        ? t(
+              'platform.sites.form.shared_database_help',
+              'Optional. Leave empty to use the configured shared database.',
+          )
+        : t(
+              'platform.sites.form.existing_database_help',
+              'Required. The database must already exist and be reachable by the configured tenant connection.',
+          ),
+);
 
 const domainForm = useForm({
     host: '',

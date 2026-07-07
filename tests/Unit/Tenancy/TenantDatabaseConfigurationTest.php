@@ -9,6 +9,7 @@ use App\Support\Tenancy\TenantContext;
 use App\Support\Tenancy\TenantDatabaseGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use InvalidArgumentException;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -35,7 +36,47 @@ class TenantDatabaseConfigurationTest extends TestCase
 
         $this->assertSame('tenant', DB::getDefaultConnection());
         $this->assertSame('rwsoft_tenant_config_test', config('database.connections.tenant.database'));
+        $this->assertSame('', config('database.connections.tenant.prefix'));
         $this->assertSame(123456, TenantContext::siteId());
+    }
+
+    public function test_configure_shared_prefixed_tenant_database_sets_connection_prefix(): void
+    {
+        $site = new Site([
+            'name' => 'Shared Prefix Test',
+            'slug' => 'shared-prefix-test',
+            'tenant_database' => 'rwsoft_shared',
+            'tenant_table_prefix' => 't_shared_',
+            'tenant_database_mode' => 'shared_prefixed',
+            'tenant_provisioning_mode' => 'shared_prefixed',
+            'status' => 'active',
+        ]);
+        $site->id = 123458;
+
+        app(ConfigureTenantDatabaseAction::class)->handle($site);
+
+        $this->assertSame('tenant', DB::getDefaultConnection());
+        $this->assertSame('rwsoft_shared', config('database.connections.tenant.database'));
+        $this->assertSame('t_shared_', config('database.connections.tenant.prefix'));
+        $this->assertSame('t_shared_', TenantContext::tablePrefix());
+    }
+
+    public function test_configure_shared_prefixed_tenant_database_rejects_invalid_prefix(): void
+    {
+        $site = new Site([
+            'name' => 'Invalid Prefix Test',
+            'slug' => 'invalid-prefix-test',
+            'tenant_database' => 'rwsoft_shared',
+            'tenant_table_prefix' => '123_bad',
+            'tenant_database_mode' => 'shared_prefixed',
+            'tenant_provisioning_mode' => 'shared_prefixed',
+            'status' => 'active',
+        ]);
+        $site->id = 123459;
+
+        $this->expectException(InvalidArgumentException::class);
+
+        app(ConfigureTenantDatabaseAction::class)->handle($site);
     }
 
     public function test_user_model_stays_on_central_connection(): void
@@ -48,7 +89,7 @@ class TenantDatabaseConfigurationTest extends TestCase
         TenantContext::clear();
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Tenant context is niet actief.');
+        $this->expectExceptionMessage(__('admin_common_ui.errors.tenant_context_inactive'));
 
         TenantDatabaseGuard::ensureTenantConnection();
     }
@@ -77,6 +118,36 @@ class TenantDatabaseConfigurationTest extends TestCase
         TenantDatabaseGuard::ensureTenantConnection();
 
         $this->assertSame(123457, TenantContext::siteId());
+    }
+
+    public function test_tenant_database_guard_rejects_prefix_mismatch(): void
+    {
+        config([
+            'database.connections.tenant' => array_merge(config('database.connections.mysql'), [
+                'database' => 'rwsoft',
+                'prefix' => 'wrong_',
+            ]),
+        ]);
+
+        DB::purge('tenant');
+
+        $site = new Site([
+            'name' => 'Tenant Guard Prefix Test',
+            'slug' => 'tenant-guard-prefix-test',
+            'tenant_database' => 'rwsoft',
+            'tenant_table_prefix' => 't_guard_',
+            'tenant_database_mode' => 'shared_prefixed',
+            'tenant_provisioning_mode' => 'shared_prefixed',
+            'status' => 'active',
+        ]);
+        $site->id = 123460;
+
+        TenantContext::setSite($site);
+        DB::setDefaultConnection('tenant');
+
+        $this->expectException(RuntimeException::class);
+
+        TenantDatabaseGuard::ensureTenantConnection();
     }
 
     public function test_public_cms_routes_require_tenant_resolver(): void

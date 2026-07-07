@@ -97,8 +97,14 @@ return [
     'errors' => [
         'not_tenant_connection' => 'La conexion de base de datos activa no es una conexion tenant.',
         'tenant_context_inactive' => 'El contexto tenant no esta activo.',
+        'tenant_database_already_used' => 'Esta base tenant ya esta usada por otro sitio.',
         'tenant_database_config_mismatch' => 'La configuracion de la base tenant no coincide con el tenant activo.',
         'tenant_database_connection_mismatch' => 'La conexion tenant activa usa la base de datos incorrecta.',
+        'tenant_database_must_not_be_central' => 'Una base tenant separada no puede ser la base central.',
+        'tenant_database_required' => 'Elige el nombre de la base tenant existente.',
+        'tenant_table_prefix_already_used' => 'Este prefijo de tablas tenant ya esta usado por otro sitio.',
+        'tenant_table_prefix_config_mismatch' => 'La configuracion del prefijo de tablas tenant no coincide con el tenant activo.',
+        'tenant_table_prefix_invalid' => 'El prefijo de tablas tenant no es valido.',
     ],
     'feedback' => [
         'settings_saved' => 'Ajustes guardados.',
