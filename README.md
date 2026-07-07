@@ -1,8 +1,41 @@
 # RwSoft
 
-RwSoft is a Laravel, Inertia and Vue based application platform for building tenant-aware admin systems, CMS websites, low-code screens, data tables, query/report flows and workflow automation.
+RwSoft is a Laravel, Inertia and Vue based application platform for building tenant-aware admin systems, CMS websites, low-code screens, data tables, query/report flows and workflow automation. It combines a central platform database with per-site tenant data so one installation can manage multiple sites, domains, admin users, memberships, CMS runtimes and public websites.
 
-The project is currently in active development. The codebase is being prepared for repeatable local installations, Laravel Cloud deployment and versioned releases.
+The project is currently in active development, but the `0.5.x` line already contains a repeatable installer, Docker runtime profile, tenant provisioning, GitHub release binaries and a verified one-command local installation flow.
+
+## Project Overview
+
+RwSoft is intended as a reusable application platform rather than a single-purpose website. It provides the foundation to build and operate multiple tenant-aware backoffice and public website applications from one codebase.
+
+You can use RwSoft to:
+
+- Manage a central platform with sites, domains, users and site memberships.
+- Provision tenant sites with their own database or shared prefixed tables.
+- Build tenant admin environments under `/admin` with route-level ACL security.
+- Build public CMS websites with pages, posts, forms, menus, media, themes and translations.
+- Build low-code/admin screens through Screen Builder runtime schemas.
+- Build data-heavy admin tables with RwTable, filtering, sorting, inline editing, charts and Excel exports.
+- Build safe QueryBuilder datasets for table output, reports and Excel downloads.
+- Generate document output from query data using office templates and PDF conversion flows.
+- Manage multilingual CMS content, admin translations and database-backed public fixed texts.
+- Manage media, downloads, folders, image variants and controlled public download routes.
+- Package CMS sites/starters for export/import and future repeatable demo-site installs.
+- Use actions, workflows and reusable backend services for automation.
+- Prepare the same codebase for local Docker, Lerd, Herd and Laravel Cloud style deployments.
+
+## What Can Be Built With It
+
+RwSoft is designed for applications where normal CRUD screens are not enough and where site-specific data separation matters. Typical use cases include:
+
+- Multi-site CMS platforms where each site has its own content, media, menu, theme and public texts.
+- Backoffice portals with user roles, permissions, workflow actions, reports and exports.
+- Internal business applications generated from database tables and Screen Builder schemas.
+- Data reporting environments where non-developers need reusable query/report definitions.
+- Public websites with structured content blocks, localized pages, forms, downloads and SEO support.
+- Tenant-aware SaaS/admin systems where central users can access one or more sites.
+
+The platform is intentionally modular. You can use the CMS, Screen Builder, QueryBuilder, RwTable, reports or workflow pieces independently depending on the application you are building.
 
 ## Current Status
 
@@ -11,7 +44,7 @@ The project is currently in active development. The codebase is being prepared f
 - Runtime stack: Laravel 13, PHP 8.5, Inertia 3, Vue 3, Tailwind CSS
 - Frontend table component: local RwTable Vue implementation
 - Backend table support: `rudiwer/rwtable-laravel` Composer package
-- Release flow: `VERSION` file, automatic patch bump on commit, automatic Git tag creation
+- Release flow: `VERSION` file, automatic patch bump on commit, automatic Git tag creation and GitHub CLI binary releases
 
 ## What RwSoft Provides
 
@@ -38,7 +71,7 @@ This section describes the current feature set for the `0.5.x` development line.
 - Site provisioning support with central site records and tenant database configuration.
 - Tenant-aware admin routing under `/admin` and public tenant routing for the active host.
 - Separation between central platform data and tenant-owned CMS/runtime data.
-- Ongoing design for both separate tenant databases and shared prefixed tenant tables for Laravel Cloud style deployments.
+- Support for both separate tenant databases and shared prefixed tenant tables for Laravel Cloud style deployments.
 
 ### Authentication And Account Security
 
@@ -285,15 +318,17 @@ This section describes the current feature set for the `0.5.x` development line.
 - Public text and CMS content rendering flows are designed around explicit translation/content records.
 - Project policy forbids destructive database cleanup without explicit approval.
 
-### Planned Installer Work
+### Installer And Runtime Profiles
 
-- System bootstrapper for machines without an existing PHP/Laravel setup.
-- Docker installation profile.
-- Lerd installation profile.
-- Laravel Herd installation profile.
-- Laravel Cloud installation profile.
-- Internal Laravel installer command after runtime setup.
-- Optional demo-site installation profile based on starter/site package imports.
+- Go-based `rwsoft` CLI bootstrapper for repeatable installations on clean machines.
+- GitHub release binaries for Linux, macOS and Windows.
+- Docker installation profile for predictable local container installs.
+- Lerd installation profile for the local Lerd PHP development environment.
+- Laravel Herd installation profile for Herd based local setups.
+- Laravel Cloud installation profile with shared prefixed tenant table support.
+- Internal `php artisan rwsoft:install` command for application setup after runtime provisioning.
+- Tenant provisioning modes for separate databases, existing databases and shared prefixed databases.
+- Optional first-site provisioning with platform admin and site membership setup.
 
 ## Repository Structure
 
@@ -312,21 +347,385 @@ routes/                      Laravel route definitions
 tools/git-hooks/             Project Git hooks for version automation
 ```
 
+## Installation
+
+The recommended installation path is the versioned `rwsoft` CLI from the latest GitHub release. The CLI can clone the repository, prepare the `.env` file, install dependencies, start the selected runtime profile and run the internal Laravel installer.
+
+The normal installation command has this shape:
+
+```bash
+rwsoft install <target-directory> [options]
+```
+
+The CLI also includes diagnostics:
+
+```bash
+rwsoft doctor --profile=auto
+rwsoft version
+rwsoft install --help
+```
+
+### Supported Release Binaries
+
+GitHub releases publish prebuilt binaries for:
+
+| Platform | CPU             | Asset                      |
+| -------- | --------------- | -------------------------- |
+| Linux    | x64 / amd64     | `rwsoft-linux-amd64`       |
+| Linux    | arm64 / aarch64 | `rwsoft-linux-arm64`       |
+| macOS    | Intel           | `rwsoft-darwin-amd64`      |
+| macOS    | Apple Silicon   | `rwsoft-darwin-arm64`      |
+| Windows  | x64 / amd64     | `rwsoft-windows-amd64.exe` |
+| Windows  | arm64           | `rwsoft-windows-arm64.exe` |
+
+Always prefer `https://github.com/RUDIWER/rwsoft/releases/latest` unless you intentionally need a fixed version.
+
+### Linux Installation
+
+Download the Linux amd64 binary:
+
+```bash
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-linux-amd64
+chmod +x rwsoft
+```
+
+For Linux arm64, use `rwsoft-linux-arm64` instead:
+
+```bash
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-linux-arm64
+chmod +x rwsoft
+```
+
+Verify the checksum:
+
+```bash
+curl -L -o checksums.txt https://github.com/RUDIWER/rwsoft/releases/latest/download/checksums.txt
+sha256sum -c checksums.txt --ignore-missing
+```
+
+Run a Docker based install:
+
+```bash
+./rwsoft install ./rwsoft-app \
+    --profile=docker \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-name="RwSoft" \
+    --site-domain=rwsoft.localhost \
+    --no-interaction
+```
+
+Optional one-line bootstrap on Linux can use the repository script. It downloads the matching release binary, verifies the checksum and then forwards all arguments to `rwsoft install`:
+
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.sh)" -- ./rwsoft-app \
+    --profile=docker \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-domain=rwsoft.localhost \
+    --no-interaction
+```
+
+### macOS Installation
+
+Download the Apple Silicon binary:
+
+```bash
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-darwin-arm64
+chmod +x rwsoft
+```
+
+Download the Intel binary:
+
+```bash
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-darwin-amd64
+chmod +x rwsoft
+```
+
+Verify the checksum with `shasum`:
+
+```bash
+curl -L -o checksums.txt https://github.com/RUDIWER/rwsoft/releases/latest/download/checksums.txt
+expected="$(grep "  rwsoft-darwin-arm64$" checksums.txt | awk '{print $1}')"
+actual="$(shasum -a 256 rwsoft | awk '{print $1}')"
+test "$expected" = "$actual"
+```
+
+For Intel macOS, replace `rwsoft-darwin-arm64` with `rwsoft-darwin-amd64` in the checksum command.
+
+Install with Laravel Herd:
+
+```bash
+./rwsoft install ~/Herd/rwsoft \
+    --profile=herd \
+    --app-url=http://rwsoft.test \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-domain=rwsoft.test \
+    --no-interaction
+```
+
+Install with Docker on macOS:
+
+```bash
+./rwsoft install ./rwsoft-app \
+    --profile=docker \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-domain=rwsoft.localhost \
+    --no-interaction
+```
+
+The same shell bootstrap script works on macOS:
+
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.sh)" -- ~/Herd/rwsoft \
+    --profile=herd \
+    --site-domain=rwsoft.test \
+    --no-interaction
+```
+
+### Windows Installation
+
+Download the Windows amd64 binary in PowerShell:
+
+```powershell
+Invoke-WebRequest `
+    -Uri "https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-windows-amd64.exe" `
+    -OutFile "rwsoft.exe"
+```
+
+For Windows arm64, use `rwsoft-windows-arm64.exe` instead.
+
+Verify the checksum:
+
+```powershell
+Invoke-WebRequest `
+    -Uri "https://github.com/RUDIWER/rwsoft/releases/latest/download/checksums.txt" `
+    -OutFile "checksums.txt"
+
+$asset = "rwsoft-windows-amd64.exe"
+$escapedAsset = [Regex]::Escape($asset)
+$expected = ((Get-Content checksums.txt | Where-Object { $_ -match "\s+$escapedAsset$" }) -split "\s+")[0].ToLowerInvariant()
+$actual = (Get-FileHash -Path "rwsoft.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($expected -ne $actual) { throw "Checksum verification failed" }
+```
+
+Install with Docker Desktop:
+
+```powershell
+.\rwsoft.exe install .\rwsoft-app `
+    --profile=docker `
+    --platform-admin-email=admin@rwsoft.local `
+    --site-domain=rwsoft.localhost `
+    --no-interaction
+```
+
+Install with Herd on Windows when Herd and the required PHP/database tooling are available:
+
+```powershell
+.\rwsoft.exe install "$HOME\Herd\rwsoft" `
+    --profile=herd `
+    --app-url=http://rwsoft.test `
+    --platform-admin-email=admin@rwsoft.local `
+    --site-domain=rwsoft.test `
+    --no-interaction
+```
+
+The PowerShell bootstrap script is also available in the repository and downloads the matching Windows binary, verifies the checksum and forwards all arguments to `rwsoft install`:
+
+```powershell
+Invoke-WebRequest `
+    -Uri "https://raw.githubusercontent.com/RUDIWER/rwsoft/main/tools/rwsoft-cli/install.ps1" `
+    -OutFile "install-rwsoft.ps1"
+
+.\install-rwsoft.ps1 .\rwsoft-app `
+    --profile=docker `
+    --site-domain=rwsoft.localhost `
+    --no-interaction
+```
+
+For explicit arguments, prefer the direct `rwsoft.exe install ...` command shown above.
+
+### Installation Profiles
+
+| Profile         | Best for                                        | Runtime requirements                    | Default tenant storage      |
+| --------------- | ----------------------------------------------- | --------------------------------------- | --------------------------- |
+| `auto`          | Let the CLI choose                              | Depends on detected environment         | Depends on detected profile |
+| `docker`        | Clean local installs and predictable containers | Git, Docker / Docker Compose            | `create_database`           |
+| `lerd`          | Local Lerd PHP development                      | Git, PHP, Composer, Node, npm, database | `create_database`           |
+| `herd`          | Laravel Herd local development                  | Git, PHP, Composer, Node, npm, database | `create_database`           |
+| `laravel-cloud` | Managed Laravel Cloud style deploys             | Git, PHP, Composer, hosted database     | `shared_prefixed`           |
+
+Profile defaults:
+
+| Profile         | Default `APP_URL`     | Default DB host | Default DB name | Default DB user | Default DB password |
+| --------------- | --------------------- | --------------- | --------------- | --------------- | ------------------- |
+| `docker`        | `http://localhost`    | `mysql`         | `rwsoft`        | `root`          | `rwsoft`            |
+| `lerd`          | `http://rwsoft.test`  | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
+| `herd`          | `http://rwsoft.test`  | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
+| `laravel-cloud` | `https://example.com` | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
+
+Auto-detection order:
+
+- `laravel-cloud` when `LARAVEL_CLOUD` is present in the environment.
+- `lerd` when the `lerd` command exists.
+- `herd` on macOS when Herd is detected.
+- `docker` when Docker is available.
+- `herd` on macOS as fallback.
+- `lerd` as final fallback.
+
+### Tenant Storage Modes
+
+RwSoft supports three provisioning modes for the first site and future site provisioning:
+
+| Mode                | Use case                                                                                                          | Resulting runtime mode |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `create_database`   | The installer may create a new tenant database for each site.                                                     | `separate`             |
+| `existing_database` | The tenant database already exists and should be used.                                                            | `separate`             |
+| `shared_prefixed`   | All tenants share one database and every tenant gets a table prefix. Useful for Laravel Cloud style environments. | `shared_prefixed`      |
+
+Examples:
+
+```bash
+./rwsoft install ./rwsoft-app --profile=docker --tenant-storage=create_database
+./rwsoft install ./rwsoft-app --profile=docker --tenant-storage=existing_database --site-tenant-database=rwsoft_site_customer
+./rwsoft install ./rwsoft-app --profile=laravel-cloud --tenant-storage=shared_prefixed --shared-database=rwsoft --site-tenant-prefix=t_customer_
+```
+
+When `shared_prefixed` is used and `--shared-database` is omitted, the CLI uses `--db-database` as the shared database.
+
+### Platform Admin And First Site
+
+The installer can prepare a first platform admin and a first tenant site.
+
+Common first-site options:
+
+```bash
+./rwsoft install ./rwsoft-app \
+    --profile=docker \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-name="RwSoft Demo" \
+    --site-slug=rwsoft-demo \
+    --site-domain=rwsoft.localhost \
+    --site-admin-email=admin@rwsoft.local \
+    --no-interaction
+```
+
+Rules:
+
+- `--platform-admin-email` promotes an existing central user to platform admin after the default central seed has run.
+- `admin@rwsoft.local` is created by the default backoffice seed and is the easiest local install value.
+- If `--site-admin-email` is omitted, the platform admin can be attached as the first site member.
+- Use `--skip-site` when you only want the central platform database and will create sites later.
+
+### Docker Profile Ports
+
+The Docker profile uses `docker-compose.yml`. These environment variables can be set before running the installer to avoid local port collisions:
+
+| Environment variable   | Default         | Purpose                                              |
+| ---------------------- | --------------- | ---------------------------------------------------- |
+| `COMPOSE_PROJECT_NAME` | directory-based | Isolates Docker container, network and volume names. |
+| `APP_PORT`             | `80`            | Host port for the Laravel app container.             |
+| `VITE_PORT`            | `5173`          | Host port for Vite dev server.                       |
+| `DB_FORWARD_PORT`      | `3307`          | Host port forwarded to MySQL `3306`.                 |
+
+Linux/macOS example:
+
+```bash
+COMPOSE_PROJECT_NAME=rwsoft_local APP_PORT=8080 VITE_PORT=5174 DB_FORWARD_PORT=3308 \
+    ./rwsoft install ./rwsoft-app --profile=docker --no-interaction
+```
+
+Windows PowerShell example:
+
+```powershell
+$env:COMPOSE_PROJECT_NAME = "rwsoft_local"
+$env:APP_PORT = "8080"
+$env:VITE_PORT = "5174"
+$env:DB_FORWARD_PORT = "3308"
+.\rwsoft.exe install .\rwsoft-app --profile=docker --no-interaction
+```
+
+### All CLI Commands
+
+| Command                             | Description                               |
+| ----------------------------------- | ----------------------------------------- |
+| `rwsoft version`                    | Print the CLI version and OS/CPU build.   |
+| `rwsoft doctor --profile=<profile>` | Check required tools for a profile.       |
+| `rwsoft install <target> [options]` | Install RwSoft into the target directory. |
+| `rwsoft help`                       | Print top-level help.                     |
+
+### All Install Options
+
+| Option                              | Description                                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `<target>`                          | Target directory. Defaults to `rwsoft` when omitted.                                                                              |
+| `--profile=<profile>`               | Select the installation/runtime profile. Supported values: `auto`, `lerd`, `herd`, `docker`, `laravel-cloud`. Defaults to `auto`. |
+| `--repo=<url>`                      | Git repository URL to clone. Defaults to `https://github.com/RUDIWER/rwsoft.git`.                                                 |
+| `--branch=<branch-or-tag>`          | Git branch or tag to clone. Defaults to `main`. Use a release tag such as `v0.5.5` for fixed installs.                            |
+| `--source=<path>`                   | Copy from a local source directory instead of cloning from Git. Useful for installer development.                                 |
+| `--dry-run`                         | Print intended actions without changing files.                                                                                    |
+| `--force`                           | Allow using a non-empty target directory.                                                                                         |
+| `--skip-composer`                   | Skip `composer install`.                                                                                                          |
+| `--skip-npm`                        | Skip `npm install`.                                                                                                               |
+| `--skip-artisan`                    | Skip `php artisan key:generate` and `php artisan rwsoft:install`.                                                                 |
+| `--skip-dependency-install`         | Do not try to install missing system dependencies automatically.                                                                  |
+| `--no-interaction`                  | Do not prompt; use provided values and profile defaults.                                                                          |
+| `--app-url=<url>`                   | Write `APP_URL` in `.env`.                                                                                                        |
+| `--db-connection=<driver>`          | Write `DB_CONNECTION`. Common value: `mysql`.                                                                                     |
+| `--db-host=<host>`                  | Write `DB_HOST`.                                                                                                                  |
+| `--db-port=<port>`                  | Write `DB_PORT`.                                                                                                                  |
+| `--db-database=<database>`          | Write `DB_DATABASE`.                                                                                                              |
+| `--db-username=<username>`          | Write `DB_USERNAME`.                                                                                                              |
+| `--db-password=<password>`          | Write `DB_PASSWORD`.                                                                                                              |
+| `--tenant-storage=<mode>`           | Select tenant provisioning/storage mode. Supported values: `create_database`, `existing_database`, `shared_prefixed`.             |
+| `--shared-database=<database>`      | Write `TENANCY_SHARED_DATABASE`; used by `shared_prefixed`.                                                                       |
+| `--platform-admin-email=<email>`    | Promote an existing central user to platform admin.                                                                               |
+| `--skip-site`                       | Do not create the first tenant site during install.                                                                               |
+| `--site-name=<name>`                | First site display name.                                                                                                          |
+| `--site-slug=<slug>`                | First site slug.                                                                                                                  |
+| `--site-domain=<domain>`            | First site primary domain.                                                                                                        |
+| `--site-admin-email=<email>`        | Existing central user email to attach as first site member.                                                                       |
+| `--site-tenant-database=<database>` | Tenant database name for the first site.                                                                                          |
+| `--site-tenant-prefix=<prefix>`     | Tenant table prefix for the first site when using `shared_prefixed`.                                                              |
+
+### Fixed Version Installs
+
+For reproducible installs, download a specific release and clone the same tag:
+
+```bash
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/download/v0.5.5/rwsoft-linux-amd64
+chmod +x rwsoft
+./rwsoft install ./rwsoft-app --profile=docker --branch=v0.5.5 --no-interaction
+```
+
+### Post-Install Access
+
+After a Docker install, the app is available on the configured `APP_PORT`:
+
+```text
+http://localhost
+```
+
+If you changed the port:
+
+```text
+http://localhost:8080
+```
+
+The platform admin area is available at:
+
+```text
+/platform
+```
+
+Unauthenticated users are redirected to `/login`.
+
 ## Development Requirements
 
-The current development setup expects the standard Laravel toolchain:
+For manual development without the installer, use the standard Laravel toolchain:
 
 - PHP 8.5 or compatible PHP 8.3+
 - Composer
 - Node.js and npm
 - MySQL, MariaDB, PostgreSQL or SQLite depending on the target environment
-
-Installer profiles for clean machines are planned and will provide easier setup paths for:
-
-- Docker
-- Lerd
-- Laravel Herd
-- Laravel Cloud
 
 ## Local Development Setup
 
@@ -414,14 +813,14 @@ Do not run destructive database commands on shared or tenant data unless the act
 
 ## Deployment Direction
 
-The deployment model is being designed around installation profiles instead of one hardcoded runtime:
+The deployment model uses installation profiles instead of one hardcoded runtime:
 
 - `docker` for clean local machines and predictable containers.
 - `lerd` for the local Lerd PHP development environment.
 - `herd` for Laravel Herd based local setups.
 - `laravel-cloud` for managed hosting.
 
-Tenant databases will support both separate databases and a shared prefixed database mode. Shared database mode must use tenant table prefixes to avoid mixing tenant data.
+Tenant databases support both separate databases and a shared prefixed database mode. Shared database mode must use tenant table prefixes to avoid mixing tenant data.
 
 ## Security Notes
 
