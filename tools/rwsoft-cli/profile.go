@@ -30,7 +30,7 @@ func resolveProfile(name string) (Profile, error) {
 
 	switch name {
 	case "lerd":
-		return Profile{Name: "lerd", DefaultAppURL: "http://rwsoft.test", DefaultDB: "mysql", DefaultDBHost: "127.0.0.1", DefaultDBPort: "3306", DefaultDBName: "rwsoft", DefaultDBUser: "root", TenantStorage: "create_database", RequiresComposer: true, RequiresPHP: true, RequiresGit: true, RequiresNode: true}, nil
+		return Profile{Name: "lerd", DefaultAppURL: "http://rwsoft.test", DefaultDB: "mysql", DefaultDBHost: "lerd-mysql", DefaultDBPort: "3306", DefaultDBName: "rwsoft", DefaultDBUser: "root", DefaultDBPassword: "lerd", TenantStorage: "create_database", RequiresComposer: true, RequiresPHP: true, RequiresGit: true, RequiresNode: true}, nil
 	case "herd":
 		return Profile{Name: "herd", DefaultAppURL: "http://rwsoft.test", DefaultDB: "mysql", DefaultDBHost: "127.0.0.1", DefaultDBPort: "3306", DefaultDBName: "rwsoft", DefaultDBUser: "root", TenantStorage: "create_database", RequiresComposer: true, RequiresPHP: true, RequiresGit: true, RequiresNode: true}, nil
 	case "docker":

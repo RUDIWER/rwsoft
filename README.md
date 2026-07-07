@@ -405,6 +405,25 @@ curl -L -o checksums.txt https://github.com/RUDIWER/rwsoft/releases/latest/downl
 sha256sum -c checksums.txt --ignore-missing
 ```
 
+Run a Lerd based install:
+
+```bash
+./rwsoft install ~/Development/rwsoft \
+    --profile=lerd \
+    --app-url=http://rwsoft.test \
+    --platform-admin-email=admin@rwsoft.local \
+    --site-domain=rwsoft.test \
+    --no-interaction
+```
+
+Register the site in Lerd and start Vite for development assets:
+
+```bash
+cd ~/Development/rwsoft
+lerd link rwsoft
+lerd worker start vite
+```
+
 Run a Docker based install:
 
 ```bash
@@ -560,7 +579,7 @@ Profile defaults:
 | Profile         | Default `APP_URL`     | Default DB host | Default DB name | Default DB user | Default DB password |
 | --------------- | --------------------- | --------------- | --------------- | --------------- | ------------------- |
 | `docker`        | `http://localhost`    | `mysql`         | `rwsoft`        | `root`          | `rwsoft`            |
-| `lerd`          | `http://rwsoft.test`  | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
+| `lerd`          | `http://rwsoft.test`  | `lerd-mysql`    | `rwsoft`        | `root`          | `lerd`              |
 | `herd`          | `http://rwsoft.test`  | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
 | `laravel-cloud` | `https://example.com` | `127.0.0.1`     | `rwsoft`        | `root`          | empty               |
 
@@ -718,7 +737,23 @@ The platform admin area is available at:
 /platform
 ```
 
+For Lerd and Herd installs, use the configured `APP_URL`, for example:
+
+```text
+http://rwsoft.test
+http://rwsoft.test/platform
+```
+
 Unauthenticated users are redirected to `/login`.
+
+Default local backoffice account:
+
+| Field    | Value                |
+| -------- | -------------------- |
+| Email    | `admin@rwsoft.local` |
+| Password | `Admin123!`          |
+
+This account is seeded for local installs. Change the password before exposing an install outside your local development environment.
 
 ## Development Requirements
 

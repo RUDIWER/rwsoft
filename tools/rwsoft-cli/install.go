@@ -83,6 +83,10 @@ func Install(ctx context.Context, options InstallOptions) error {
 	}
 
 	if !options.SkipArtisan && options.Profile.RequiresPHP {
+		if err := ensureCentralDatabase(ctx, runner, envConfig); err != nil {
+			return err
+		}
+
 		if err := runner.Run(ctx, "php", "artisan", "key:generate", "--force"); err != nil {
 			return err
 		}
@@ -99,6 +103,32 @@ func Install(ctx context.Context, options InstallOptions) error {
 
 	fmt.Println("\nRwSoft install completed.")
 	return nil
+}
+
+func ensureCentralDatabase(ctx context.Context, runner Runner, envConfig EnvConfig) error {
+	if envConfig.DBConnection != "mysql" {
+		return nil
+	}
+
+	if runner.DryRun {
+		fmt.Printf("DRY-RUN: create database %s if it does not exist\n", envConfig.DBDatabase)
+		return nil
+	}
+
+	phpCode := "$driver=$argv[1];$host=$argv[2];$port=$argv[3];$database=$argv[4];$username=$argv[5];$password=$argv[6];if($driver!=='mysql'){exit(0);}$pdo=new PDO('mysql:host='.$host.';port='.$port.';charset=utf8mb4',$username,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$database=str_replace('`','``',$database);$pdo->exec('CREATE DATABASE IF NOT EXISTS `'.$database.'` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');"
+
+	return runner.Run(
+		ctx,
+		"php",
+		"-r",
+		phpCode,
+		envConfig.DBConnection,
+		envConfig.DBHost,
+		envConfig.DBPort,
+		envConfig.DBDatabase,
+		envConfig.DBUsername,
+		envConfig.DBPassword,
+	)
 }
 
 func ArtisanInstallArgs(profile Profile, platformAdminEmail string, site SiteConfig, env EnvConfig) []string {
