@@ -15,6 +15,12 @@
 /.codex
 /.gemini
 /.opencode
+/.agents
+/.ai
+/AGENTS.md
+/GEMINI.md
+/stubs
+/docs/rwtable-monorepo-release-blueprint.md
 /.phpunit.cache
 /.vscode
 /.zed
