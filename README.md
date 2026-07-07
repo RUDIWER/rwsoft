@@ -680,7 +680,7 @@ $env:DB_FORWARD_PORT = "3308"
 | `<target>`                          | Target directory. Defaults to `rwsoft` when omitted.                                                                              |
 | `--profile=<profile>`               | Select the installation/runtime profile. Supported values: `auto`, `lerd`, `herd`, `docker`, `laravel-cloud`. Defaults to `auto`. |
 | `--repo=<url>`                      | Git repository URL to clone. Defaults to `https://github.com/RUDIWER/rwsoft.git`.                                                 |
-| `--branch=<branch-or-tag>`          | Git branch or tag to clone. Defaults to `main`. Use a release tag such as `v0.5.6` for fixed installs.                            |
+| `--branch=<branch-or-tag>`          | Git branch or tag to clone. Defaults to `main`. Use a release tag such as `v0.5.7` for fixed installs.                            |
 | `--source=<path>`                   | Copy from a local source directory instead of cloning from Git. Useful for installer development.                                 |
 | `--dry-run`                         | Print intended actions without changing files.                                                                                    |
 | `--force`                           | Allow using a non-empty target directory.                                                                                         |
@@ -712,9 +712,9 @@ $env:DB_FORWARD_PORT = "3308"
 For reproducible installs, download a specific release and clone the same tag:
 
 ```bash
-curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/download/v0.5.6/rwsoft-linux-amd64
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/download/v0.5.7/rwsoft-linux-amd64
 chmod +x rwsoft
-./rwsoft install ./rwsoft-app --profile=docker --branch=v0.5.6 --no-interaction
+./rwsoft install ./rwsoft-app --profile=docker --branch=v0.5.7 --no-interaction
 ```
 
 ### Post-Install Access
