@@ -52,7 +52,7 @@ return new class extends Migration
         if (! Schema::connection($this->connection)->hasTable('cms_placeable_block_revisions')) {
             Schema::connection($this->connection)->create('cms_placeable_block_revisions', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('cms_placeable_block_id')->constrained('cms_placeable_blocks')->cascadeOnDelete();
+                $table->foreignId('cms_placeable_block_id');
                 $table->unsignedInteger('revision_number');
                 $table->string('status', 32)->default('draft')->index();
                 $table->string('title')->nullable();
@@ -81,6 +81,21 @@ return new class extends Migration
 
                 $table->unique(['cms_placeable_block_id', 'revision_number'], 'cms_placeable_block_revisions_number_unique');
                 $table->index(['cms_placeable_block_id', 'status'], 'cms_placeable_block_revisions_block_status_index');
+                $table->foreign('cms_placeable_block_id', 'cms_placeable_block_revisions_block_fk')
+                    ->references('id')
+                    ->on('cms_placeable_blocks')
+                    ->cascadeOnDelete();
+            });
+        }
+
+        if (Schema::connection($this->connection)->hasTable('cms_placeable_block_revisions')
+            && Schema::connection($this->connection)->hasTable('cms_placeable_blocks')
+            && ! $this->hasForeignKey('cms_placeable_block_revisions', 'cms_placeable_block_id')) {
+            Schema::connection($this->connection)->table('cms_placeable_block_revisions', function (Blueprint $table): void {
+                $table->foreign('cms_placeable_block_id', 'cms_placeable_block_revisions_block_fk')
+                    ->references('id')
+                    ->on('cms_placeable_blocks')
+                    ->cascadeOnDelete();
             });
         }
 
@@ -369,5 +384,16 @@ return new class extends Migration
                         ]);
                 }
             }, 'id');
+    }
+
+    private function hasForeignKey(string $table, string $column): bool
+    {
+        $connection = Schema::connection($this->connection)->getConnection();
+        $prefix = $connection->getTablePrefix();
+
+        return $connection->selectOne(
+            'select 1 from information_schema.key_column_usage where table_schema = ? and table_name = ? and column_name = ? and referenced_table_name is not null limit 1',
+            [$connection->getDatabaseName(), $prefix.$table, $column],
+        ) !== null;
     }
 };
