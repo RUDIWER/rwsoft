@@ -59,15 +59,21 @@ return new class extends Migration
         if (! Schema::connection($this->connection)->hasTable('cms_download_asset_translations')) {
             Schema::connection($this->connection)->create('cms_download_asset_translations', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('cms_download_asset_id')->constrained('cms_download_assets')->cascadeOnDelete();
+                $table->foreignId('cms_download_asset_id');
                 $table->string('locale', 12);
                 $table->string('title')->nullable();
                 $table->text('description')->nullable();
                 $table->timestamps();
 
                 $table->unique(['cms_download_asset_id', 'locale'], 'cms_download_asset_translations_asset_locale_unique');
+                $table->foreign('cms_download_asset_id', 'cms_download_asset_translations_asset_fk')
+                    ->references('id')
+                    ->on('cms_download_assets')
+                    ->cascadeOnDelete();
             });
         }
+
+        $this->ensureForeignKey('cms_download_asset_translations', 'cms_download_asset_id', 'cms_download_assets', 'cms_download_asset_translations_asset_fk', cascadeOnDelete: true);
 
         if (! Schema::connection($this->connection)->hasTable('cms_download_groups')) {
             Schema::connection($this->connection)->create('cms_download_groups', function (Blueprint $table): void {
@@ -85,13 +91,24 @@ return new class extends Migration
         if (! Schema::connection($this->connection)->hasTable('cms_download_group_site_user')) {
             Schema::connection($this->connection)->create('cms_download_group_site_user', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('cms_download_group_id')->constrained('cms_download_groups')->cascadeOnDelete();
-                $table->foreignId('site_user_id')->constrained('site_users')->cascadeOnDelete();
+                $table->foreignId('cms_download_group_id');
+                $table->foreignId('site_user_id');
                 $table->timestamps();
 
                 $table->unique(['cms_download_group_id', 'site_user_id'], 'cms_download_group_site_user_unique');
+                $table->foreign('cms_download_group_id', 'cdgsu_group_fk')
+                    ->references('id')
+                    ->on('cms_download_groups')
+                    ->cascadeOnDelete();
+                $table->foreign('site_user_id', 'cdgsu_site_user_fk')
+                    ->references('id')
+                    ->on('site_users')
+                    ->cascadeOnDelete();
             });
         }
+
+        $this->ensureForeignKey('cms_download_group_site_user', 'cms_download_group_id', 'cms_download_groups', 'cdgsu_group_fk', cascadeOnDelete: true);
+        $this->ensureForeignKey('cms_download_group_site_user', 'site_user_id', 'site_users', 'cdgsu_site_user_fk', cascadeOnDelete: true);
 
         if (! Schema::connection($this->connection)->hasTable('cms_download_access_rules')) {
             Schema::connection($this->connection)->create('cms_download_access_rules', function (Blueprint $table): void {
@@ -115,15 +132,22 @@ return new class extends Migration
         if (! Schema::connection($this->connection)->hasTable('cms_download_events')) {
             Schema::connection($this->connection)->create('cms_download_events', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('cms_download_asset_id')->nullable()->constrained('cms_download_assets')->nullOnDelete();
+                $table->foreignId('cms_download_asset_id')->nullable();
                 $table->unsignedBigInteger('site_user_id')->nullable()->index();
                 $table->string('event', 32)->index();
                 $table->string('ip_hash', 64)->nullable();
                 $table->string('user_agent_hash', 64)->nullable();
                 $table->json('metadata')->nullable();
                 $table->timestamps();
+
+                $table->foreign('cms_download_asset_id', 'cms_download_events_asset_fk')
+                    ->references('id')
+                    ->on('cms_download_assets')
+                    ->nullOnDelete();
             });
         }
+
+        $this->ensureForeignKey('cms_download_events', 'cms_download_asset_id', 'cms_download_assets', 'cms_download_events_asset_fk', nullOnDelete: true);
     }
 
     public function down(): void
@@ -135,5 +159,46 @@ return new class extends Migration
         Schema::connection($this->connection)->dropIfExists('cms_download_asset_translations');
         Schema::connection($this->connection)->dropIfExists('cms_download_assets');
         Schema::connection($this->connection)->dropIfExists('cms_download_folders');
+    }
+
+    private function ensureForeignKey(
+        string $table,
+        string $column,
+        string $referencedTable,
+        string $constraint,
+        bool $cascadeOnDelete = false,
+        bool $nullOnDelete = false,
+    ): void {
+        if (! Schema::connection($this->connection)->hasTable($table)
+            || ! Schema::connection($this->connection)->hasTable($referencedTable)
+            || ! Schema::connection($this->connection)->hasColumn($table, $column)
+            || $this->hasForeignKey($table, $column)) {
+            return;
+        }
+
+        Schema::connection($this->connection)->table($table, function (Blueprint $blueprint) use ($cascadeOnDelete, $column, $constraint, $nullOnDelete, $referencedTable): void {
+            $foreign = $blueprint->foreign($column, $constraint)
+                ->references('id')
+                ->on($referencedTable);
+
+            if ($cascadeOnDelete) {
+                $foreign->cascadeOnDelete();
+            }
+
+            if ($nullOnDelete) {
+                $foreign->nullOnDelete();
+            }
+        });
+    }
+
+    private function hasForeignKey(string $table, string $column): bool
+    {
+        $connection = Schema::connection($this->connection)->getConnection();
+        $prefix = $connection->getTablePrefix();
+
+        return $connection->selectOne(
+            'select 1 from information_schema.key_column_usage where table_schema = ? and table_name = ? and column_name = ? and referenced_table_name is not null limit 1',
+            [$connection->getDatabaseName(), $prefix.$table, $column],
+        ) !== null;
     }
 };
