@@ -49,16 +49,31 @@ return new class extends Migration
 
     private function hasTable(string $table): bool
     {
-        return Schema::hasTable($table) || Schema::hasTable($this->prefixedTable($table));
+        return Schema::hasTable($table) || $this->hasPrefixedTable($table);
     }
 
     private function hasColumn(string $table, string $column): bool
     {
-        return Schema::hasColumn($table, $column) || Schema::hasColumn($this->prefixedTable($table), $column);
+        return Schema::hasColumn($table, $column) || $this->hasPrefixedColumn($table, $column);
     }
 
-    private function prefixedTable(string $table): string
+    private function hasPrefixedTable(string $table): bool
     {
-        return DB::connection()->getTablePrefix().$table;
+        $prefix = DB::connection()->getTablePrefix();
+
+        return $prefix !== '' && DB::selectOne(
+            'select 1 from information_schema.tables where table_schema = ? and table_name = ? limit 1',
+            [DB::connection()->getDatabaseName(), $prefix.$table],
+        ) !== null;
+    }
+
+    private function hasPrefixedColumn(string $table, string $column): bool
+    {
+        $prefix = DB::connection()->getTablePrefix();
+
+        return $prefix !== '' && DB::selectOne(
+            'select 1 from information_schema.columns where table_schema = ? and table_name = ? and column_name = ? limit 1',
+            [DB::connection()->getDatabaseName(), $prefix.$table, $column],
+        ) !== null;
     }
 };
