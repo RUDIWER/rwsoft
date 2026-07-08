@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,17 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('acl_permission_role')) {
+        if ($this->hasTable('acl_permission_role')) {
             Schema::table('acl_permission_role', function (Blueprint $table) {
-                if (! Schema::hasColumn('acl_permission_role', 'acl_role_id')) {
+                if (! $this->hasColumn('acl_permission_role', 'acl_role_id')) {
                     $table->unsignedBigInteger('acl_role_id')->nullable();
                 }
 
-                if (! Schema::hasColumn('acl_permission_role', 'acl_permission_id')) {
+                if (! $this->hasColumn('acl_permission_role', 'acl_permission_id')) {
                     $table->unsignedBigInteger('acl_permission_id')->nullable();
                 }
 
-                if (! Schema::hasColumn('acl_permission_role', 'active')) {
+                if (! $this->hasColumn('acl_permission_role', 'active')) {
                     $table->boolean('active')->default(true);
                 }
             });
@@ -36,7 +37,7 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->timestamps();
 
-            $table->unique(['acl_role_id', 'acl_permission_id']);
+            $table->unique(['acl_role_id', 'acl_permission_id'], 'acl_perm_role_unique');
         });
     }
 
@@ -46,5 +47,20 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('acl_permission_role');
+    }
+
+    private function hasTable(string $table): bool
+    {
+        return Schema::hasTable($table) || Schema::hasTable($this->prefixedTable($table));
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        return Schema::hasColumn($table, $column) || Schema::hasColumn($this->prefixedTable($table), $column);
+    }
+
+    private function prefixedTable(string $table): string
+    {
+        return DB::connection()->getTablePrefix().$table;
     }
 };

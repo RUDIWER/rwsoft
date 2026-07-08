@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,13 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('acl_role_user')) {
+        if ($this->hasTable('acl_role_user')) {
             Schema::table('acl_role_user', function (Blueprint $table) {
-                if (! Schema::hasColumn('acl_role_user', 'user_id')) {
+                if (! $this->hasColumn('acl_role_user', 'user_id')) {
                     $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
                 }
 
-                if (! Schema::hasColumn('acl_role_user', 'acl_role_id')) {
+                if (! $this->hasColumn('acl_role_user', 'acl_role_id')) {
                     $table->foreignId('acl_role_id')->nullable()->constrained('acl_roles')->cascadeOnDelete();
                 }
             });
@@ -41,5 +42,20 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('acl_role_user');
+    }
+
+    private function hasTable(string $table): bool
+    {
+        return Schema::hasTable($table) || Schema::hasTable($this->prefixedTable($table));
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        return Schema::hasColumn($table, $column) || Schema::hasColumn($this->prefixedTable($table), $column);
+    }
+
+    private function prefixedTable(string $table): string
+    {
+        return DB::connection()->getTablePrefix().$table;
     }
 };

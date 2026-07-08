@@ -158,6 +158,16 @@ const navigationItems = computed(() => [
         icon: 'mdi-web',
     },
     {
+        label: t('navigation.hosting', 'Hosting'),
+        route: 'platform.hosting.index',
+        icon: 'mdi-cloud-sync',
+    },
+    {
+        label: t('navigation.publications', 'Publications'),
+        route: 'platform.publications.index',
+        icon: 'mdi-cloud-upload',
+    },
+    {
         label: t('navigation.mail_transport', 'Mail delivery'),
         route: 'platform.mail-transport.edit',
         icon: 'mdi-email-fast',

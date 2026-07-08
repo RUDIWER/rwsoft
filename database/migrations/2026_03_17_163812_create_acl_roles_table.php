@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,17 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('acl_roles')) {
+        if ($this->hasTable('acl_roles')) {
             Schema::table('acl_roles', function (Blueprint $table) {
-                if (! Schema::hasColumn('acl_roles', 'key')) {
+                if (! $this->hasColumn('acl_roles', 'key')) {
                     $table->string('key')->nullable();
                 }
 
-                if (! Schema::hasColumn('acl_roles', 'name')) {
+                if (! $this->hasColumn('acl_roles', 'name')) {
                     $table->string('name')->nullable();
                 }
 
-                if (! Schema::hasColumn('acl_roles', 'description')) {
+                if (! $this->hasColumn('acl_roles', 'description')) {
                     $table->string('description')->nullable();
                 }
             });
@@ -44,5 +45,20 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('acl_roles');
+    }
+
+    private function hasTable(string $table): bool
+    {
+        return Schema::hasTable($table) || Schema::hasTable($this->prefixedTable($table));
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        return Schema::hasColumn($table, $column) || Schema::hasColumn($this->prefixedTable($table), $column);
+    }
+
+    private function prefixedTable(string $table): string
+    {
+        return DB::connection()->getTablePrefix().$table;
     }
 };
