@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -59,21 +58,23 @@ return new class extends Migration
 
     private function hasPrefixedTable(string $table): bool
     {
-        $prefix = DB::connection()->getTablePrefix();
+        $connection = Schema::getConnection();
+        $prefix = $connection->getTablePrefix();
 
-        return $prefix !== '' && DB::selectOne(
+        return $prefix !== '' && $connection->selectOne(
             'select 1 from information_schema.tables where table_schema = ? and table_name = ? limit 1',
-            [DB::connection()->getDatabaseName(), $prefix.$table],
+            [$connection->getDatabaseName(), $prefix.$table],
         ) !== null;
     }
 
     private function hasPrefixedColumn(string $table, string $column): bool
     {
-        $prefix = DB::connection()->getTablePrefix();
+        $connection = Schema::getConnection();
+        $prefix = $connection->getTablePrefix();
 
-        return $prefix !== '' && DB::selectOne(
+        return $prefix !== '' && $connection->selectOne(
             'select 1 from information_schema.columns where table_schema = ? and table_name = ? and column_name = ? limit 1',
-            [DB::connection()->getDatabaseName(), $prefix.$table, $column],
+            [$connection->getDatabaseName(), $prefix.$table, $column],
         ) !== null;
     }
 };
