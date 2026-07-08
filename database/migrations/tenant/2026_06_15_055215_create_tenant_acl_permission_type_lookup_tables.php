@@ -85,7 +85,7 @@ return new class extends Migration
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_types', 'acl_permissions.type', '=', 'acl_permission_types.key')
                 ->whereNotNull('acl_permission_types.id')
-                ->update(['acl_permissions.type_id' => DB::raw('acl_permission_types.id')]);
+                ->update(['acl_permissions.type_id' => DB::raw($this->qualifiedColumn('acl_permission_types', 'id'))]);
         }
     }
 
@@ -125,7 +125,7 @@ return new class extends Migration
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_types', 'acl_permissions.type_id', '=', 'acl_permission_types.id')
                 ->whereNotNull('acl_permission_types.key')
-                ->update(['acl_permissions.type' => DB::raw('acl_permission_types.key')]);
+                ->update(['acl_permissions.type' => DB::raw($this->qualifiedColumn('acl_permission_types', 'key'))]);
         }
     }
 
@@ -140,5 +140,10 @@ return new class extends Migration
                 $table->dropConstrainedForeignId('type_id');
             }
         });
+    }
+
+    private function qualifiedColumn(string $table, string $column): string
+    {
+        return Schema::getConnection()->getTablePrefix().$table.'.'.$column;
     }
 };
