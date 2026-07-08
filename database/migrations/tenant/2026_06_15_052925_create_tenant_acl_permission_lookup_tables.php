@@ -119,14 +119,14 @@ return new class extends Migration
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_modules', 'acl_permissions.module', '=', 'acl_permission_modules.name')
                 ->whereNotNull('acl_permission_modules.id')
-                ->update(['acl_permissions.module_id' => DB::raw('acl_permission_modules.id')]);
+                ->update(['acl_permissions.module_id' => DB::raw($this->qualifiedColumn('acl_permission_modules', 'id'))]);
         }
 
         if (Schema::hasColumn('acl_permissions', 'action') && Schema::hasColumn('acl_permissions', 'action_id')) {
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_actions', 'acl_permissions.action', '=', 'acl_permission_actions.name')
                 ->whereNotNull('acl_permission_actions.id')
-                ->update(['acl_permissions.action_id' => DB::raw('acl_permission_actions.id')]);
+                ->update(['acl_permissions.action_id' => DB::raw($this->qualifiedColumn('acl_permission_actions', 'id'))]);
         }
     }
 
@@ -174,14 +174,14 @@ return new class extends Migration
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_modules', 'acl_permissions.module_id', '=', 'acl_permission_modules.id')
                 ->whereNotNull('acl_permission_modules.name')
-                ->update(['acl_permissions.module' => DB::raw('acl_permission_modules.name')]);
+                ->update(['acl_permissions.module' => DB::raw($this->qualifiedColumn('acl_permission_modules', 'name'))]);
         }
 
         if (Schema::hasColumn('acl_permissions', 'action') && Schema::hasColumn('acl_permissions', 'action_id')) {
             DB::table('acl_permissions')
                 ->leftJoin('acl_permission_actions', 'acl_permissions.action_id', '=', 'acl_permission_actions.id')
                 ->whereNotNull('acl_permission_actions.name')
-                ->update(['acl_permissions.action' => DB::raw('acl_permission_actions.name')]);
+                ->update(['acl_permissions.action' => DB::raw($this->qualifiedColumn('acl_permission_actions', 'name'))]);
         }
     }
 
@@ -200,5 +200,10 @@ return new class extends Migration
                 $table->dropConstrainedForeignId('action_id');
             }
         });
+    }
+
+    private function qualifiedColumn(string $table, string $column): string
+    {
+        return Schema::getConnection()->getTablePrefix().$table.'.'.$column;
     }
 };
