@@ -12,30 +12,42 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cms_menus', function (Blueprint $table) {
-            $table->json('placements')->nullable()->after('title');
-        });
-
-        DB::table('cms_menus')
-            ->select(['id', 'location'])
-            ->orderBy('id')
-            ->each(function (object $menu): void {
-                $allowedPlacements = array_keys((array) config('cms_menus.placements', []));
-                $location = trim((string) ($menu->location ?? ''));
-                $placements = in_array($location, $allowedPlacements, true) ? [$location] : [];
-
-                DB::table('cms_menus')
-                    ->where('id', $menu->id)
-                    ->update([
-                        'placements' => json_encode($placements),
-                    ]);
+        if (! Schema::hasColumn('cms_menus', 'placements')) {
+            Schema::table('cms_menus', function (Blueprint $table): void {
+                $table->json('placements')->nullable()->after('title');
             });
+        }
 
-        Schema::table('cms_menus', function (Blueprint $table) {
-            $table->dropUnique('cms_menus_location_unique');
-            $table->dropIndex('cms_menus_location_index');
-            $table->dropColumn('location');
-        });
+        if (Schema::hasColumn('cms_menus', 'location')) {
+            DB::table('cms_menus')
+                ->select(['id', 'location'])
+                ->orderBy('id')
+                ->each(function (object $menu): void {
+                    $allowedPlacements = array_keys((array) config('cms_menus.placements', []));
+                    $location = trim((string) ($menu->location ?? ''));
+                    $placements = in_array($location, $allowedPlacements, true) ? [$location] : [];
+
+                    DB::table('cms_menus')
+                        ->where('id', $menu->id)
+                        ->update([
+                            'placements' => json_encode($placements),
+                        ]);
+                });
+        }
+
+        if (Schema::hasColumn('cms_menus', 'location')) {
+            Schema::table('cms_menus', function (Blueprint $table): void {
+                if ($this->hasIndex('cms_menus', 'cms_menus_location_unique')) {
+                    $table->dropUnique($this->indexName('cms_menus_location_unique'));
+                }
+
+                if ($this->hasIndex('cms_menus', 'cms_menus_location_index')) {
+                    $table->dropIndex($this->indexName('cms_menus_location_index'));
+                }
+
+                $table->dropColumn('location');
+            });
+        }
     }
 
     /**
@@ -43,9 +55,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cms_menus', function (Blueprint $table) {
-            $table->string('location')->nullable()->index()->after('title');
-        });
+        if (! Schema::hasColumn('cms_menus', 'location')) {
+            Schema::table('cms_menus', function (Blueprint $table): void {
+                $table->string('location')->nullable()->index()->after('title');
+            });
+        }
 
         DB::table('cms_menus')
             ->select(['id', 'placements'])
@@ -59,9 +73,39 @@ return new class extends Migration
                     ->update(['location' => $location !== '' ? $location : null]);
             });
 
-        Schema::table('cms_menus', function (Blueprint $table) {
-            $table->unique('location');
-            $table->dropColumn('placements');
+        Schema::table('cms_menus', function (Blueprint $table): void {
+            if (! $this->hasIndex('cms_menus', 'cms_menus_location_unique')) {
+                $table->unique('location');
+            }
+
+            if (Schema::hasColumn('cms_menus', 'placements')) {
+                $table->dropColumn('placements');
+            }
         });
+    }
+
+    private function hasIndex(string $table, string $index): bool
+    {
+        return Schema::hasIndex($table, $index) || $this->hasPrefixedIndex($table, $index);
+    }
+
+    private function hasPrefixedIndex(string $table, string $index): bool
+    {
+        $connection = Schema::getConnection();
+        $prefix = $connection->getTablePrefix();
+
+        return $prefix !== '' && $connection->selectOne(
+            'select 1 from information_schema.statistics where table_schema = ? and table_name = ? and index_name = ? limit 1',
+            [$connection->getDatabaseName(), $prefix.$table, $prefix.$index],
+        ) !== null;
+    }
+
+    private function indexName(string $index): string
+    {
+        $prefix = Schema::getConnection()->getTablePrefix();
+
+        return $prefix !== '' && $this->hasPrefixedIndex('cms_menus', $index)
+            ? $prefix.$index
+            : $index;
     }
 };
