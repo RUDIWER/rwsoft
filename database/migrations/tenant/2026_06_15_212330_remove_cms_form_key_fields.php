@@ -298,6 +298,11 @@ return new class extends Migration
         DB::table('cms_form_submission_values')
             ->leftJoin('cms_form_fields', 'cms_form_fields.id', '=', 'cms_form_submission_values.cms_form_field_id')
             ->whereNull('cms_form_submission_values.field_label_snapshot')
-            ->update(['cms_form_submission_values.field_label_snapshot' => DB::raw('cms_form_fields.label')]);
+            ->update(['cms_form_submission_values.field_label_snapshot' => DB::raw($this->qualifiedColumn('cms_form_fields', 'label'))]);
+    }
+
+    private function qualifiedColumn(string $table, string $column): string
+    {
+        return Schema::getConnection()->getTablePrefix().$table.'.'.$column;
     }
 };
