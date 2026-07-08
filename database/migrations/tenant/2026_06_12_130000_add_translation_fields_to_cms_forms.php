@@ -11,7 +11,7 @@ return new class extends Migration
         $hasFormTranslationKey = Schema::hasColumn('cms_forms', 'translation_key');
         $hasTranslatedFromFormId = Schema::hasColumn('cms_forms', 'translated_from_form_id');
 
-        if (Schema::hasIndex('cms_forms', 'cms_forms_key_unique')) {
+        if ($this->hasIndex('cms_forms', 'cms_forms_key_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->dropUnique(['key']);
             });
@@ -33,13 +33,13 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasColumn('cms_forms', 'key') && ! Schema::hasIndex('cms_forms', 'cms_forms_locale_key_unique')) {
+        if (Schema::hasColumn('cms_forms', 'key') && ! $this->hasIndex('cms_forms', 'cms_forms_locale_key_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->unique(['locale', 'key']);
             });
         }
 
-        if (! Schema::hasIndex('cms_forms', 'cms_forms_translation_key_locale_unique')) {
+        if (! $this->hasIndex('cms_forms', 'cms_forms_translation_key_locale_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->unique(['translation_key', 'locale']);
             });
@@ -118,13 +118,13 @@ return new class extends Migration
             }
         });
 
-        if (Schema::hasIndex('cms_forms', 'cms_forms_translation_key_locale_unique')) {
+        if ($this->hasIndex('cms_forms', 'cms_forms_translation_key_locale_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->dropUnique(['translation_key', 'locale']);
             });
         }
 
-        if (Schema::hasColumn('cms_forms', 'key') && Schema::hasIndex('cms_forms', 'cms_forms_locale_key_unique')) {
+        if (Schema::hasColumn('cms_forms', 'key') && $this->hasIndex('cms_forms', 'cms_forms_locale_key_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->dropUnique(['locale', 'key']);
             });
@@ -140,10 +140,26 @@ return new class extends Migration
             }
         });
 
-        if (Schema::hasColumn('cms_forms', 'key') && ! Schema::hasIndex('cms_forms', 'cms_forms_key_unique')) {
+        if (Schema::hasColumn('cms_forms', 'key') && ! $this->hasIndex('cms_forms', 'cms_forms_key_unique')) {
             Schema::table('cms_forms', function (Blueprint $table): void {
                 $table->unique('key');
             });
         }
+    }
+
+    private function hasIndex(string $table, string $index): bool
+    {
+        return Schema::hasIndex($table, $index) || $this->hasPrefixedIndex($table, $index);
+    }
+
+    private function hasPrefixedIndex(string $table, string $index): bool
+    {
+        $connection = Schema::getConnection();
+        $prefix = $connection->getTablePrefix();
+
+        return $prefix !== '' && $connection->selectOne(
+            'select 1 from information_schema.statistics where table_schema = ? and table_name = ? and index_name = ? limit 1',
+            [$connection->getDatabaseName(), $prefix.$table, $prefix.$index],
+        ) !== null;
     }
 };
