@@ -59,4 +59,16 @@ fi
 )
 
 chmod +x "$TMP_DIR/${asset}"
-exec "$TMP_DIR/${asset}" install "$@"
+
+has_ref_arg=0
+for arg in "$@"; do
+    case "$arg" in
+        --branch|--branch=*|--source|--source=*) has_ref_arg=1 ;;
+    esac
+done
+
+if [ "$has_ref_arg" -eq 1 ]; then
+    exec "$TMP_DIR/${asset}" install "$@"
+fi
+
+exec "$TMP_DIR/${asset}" install "$@" --branch=latest

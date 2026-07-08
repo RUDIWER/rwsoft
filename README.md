@@ -410,6 +410,7 @@ Run a Lerd based install:
 ```bash
 ./rwsoft install ~/Development/rwsoft \
     --profile=lerd \
+    --branch=latest \
     --app-url=http://rwsoft.test \
     --platform-admin-email=admin@rwsoft.local \
     --site-domain=rwsoft.test \
@@ -429,13 +430,14 @@ Run a Docker based install:
 ```bash
 ./rwsoft install ./rwsoft-app \
     --profile=docker \
+    --branch=latest \
     --platform-admin-email=admin@rwsoft.local \
     --site-name="RwSoft" \
     --site-domain=rwsoft.localhost \
     --no-interaction
 ```
 
-Optional one-line bootstrap on Linux can use the release script. It downloads the matching release binary, verifies the checksum and then forwards all arguments to `rwsoft install`:
+Optional one-line bootstrap on Linux can use the release script. It downloads the matching release binary, verifies the checksum and then forwards all arguments to `rwsoft install`. When no `--branch` or `--source` is provided, the bootstrap script automatically adds `--branch=latest`:
 
 ```bash
 sh -c "$(curl -fsSL https://github.com/RUDIWER/rwsoft/releases/latest/download/install.sh)" -- ./rwsoft-app \
@@ -477,6 +479,7 @@ Install with Laravel Herd:
 ```bash
 ./rwsoft install ~/Herd/rwsoft \
     --profile=herd \
+    --branch=latest \
     --app-url=http://rwsoft.test \
     --platform-admin-email=admin@rwsoft.local \
     --site-domain=rwsoft.test \
@@ -488,12 +491,13 @@ Install with Docker on macOS:
 ```bash
 ./rwsoft install ./rwsoft-app \
     --profile=docker \
+    --branch=latest \
     --platform-admin-email=admin@rwsoft.local \
     --site-domain=rwsoft.localhost \
     --no-interaction
 ```
 
-The same shell bootstrap script works on macOS:
+The same shell bootstrap script works on macOS and also defaults to `--branch=latest` when no explicit branch/source is provided:
 
 ```bash
 sh -c "$(curl -fsSL https://github.com/RUDIWER/rwsoft/releases/latest/download/install.sh)" -- ~/Herd/rwsoft \
@@ -533,6 +537,7 @@ Install with Docker Desktop:
 ```powershell
 .\rwsoft.exe install .\rwsoft-app `
     --profile=docker `
+    --branch=latest `
     --platform-admin-email=admin@rwsoft.local `
     --site-domain=rwsoft.localhost `
     --no-interaction
@@ -543,13 +548,14 @@ Install with Herd on Windows when Herd and the required PHP/database tooling are
 ```powershell
 .\rwsoft.exe install "$HOME\Herd\rwsoft" `
     --profile=herd `
+    --branch=latest `
     --app-url=http://rwsoft.test `
     --platform-admin-email=admin@rwsoft.local `
     --site-domain=rwsoft.test `
     --no-interaction
 ```
 
-The PowerShell bootstrap script is also available as a release asset and downloads the matching Windows binary, verifies the checksum and forwards all arguments to `rwsoft install`:
+The PowerShell bootstrap script is also available as a release asset and downloads the matching Windows binary, verifies the checksum and forwards all arguments to `rwsoft install`. When no `--branch` or `--source` is provided, it automatically adds `--branch=latest`:
 
 ```powershell
 Invoke-WebRequest `
@@ -680,7 +686,7 @@ $env:DB_FORWARD_PORT = "3308"
 | `<target>`                          | Target directory. Defaults to `rwsoft` when omitted.                                                                              |
 | `--profile=<profile>`               | Select the installation/runtime profile. Supported values: `auto`, `lerd`, `herd`, `docker`, `laravel-cloud`. Defaults to `auto`. |
 | `--repo=<url>`                      | Git repository URL to clone. Defaults to `https://github.com/RUDIWER/rwsoft.git`.                                                 |
-| `--branch=<branch-or-tag>`          | Git branch or tag to clone. Defaults to `main`. Use a release tag such as `v0.5.7` for fixed installs.                            |
+| `--branch=<branch-or-tag>`          | Git branch, tag or `latest` release to clone. Defaults to `main`. Use `latest` for the newest stable release.                     |
 | `--source=<path>`                   | Copy from a local source directory instead of cloning from Git. Useful for installer development.                                 |
 | `--dry-run`                         | Print intended actions without changing files.                                                                                    |
 | `--force`                           | Allow using a non-empty target directory.                                                                                         |
@@ -707,15 +713,17 @@ $env:DB_FORWARD_PORT = "3308"
 | `--site-tenant-database=<database>` | Tenant database name for the first site.                                                                                          |
 | `--site-tenant-prefix=<prefix>`     | Tenant table prefix for the first site when using `shared_prefixed`.                                                              |
 
-### Fixed Version Installs
+### Latest And Fixed Version Installs
 
-For reproducible installs, download a specific release and clone the same tag:
+For normal stable installs, use the latest release binary and clone the latest release tag without hardcoding a version number:
 
 ```bash
-curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/download/v0.5.7/rwsoft-linux-amd64
+curl -L -o rwsoft https://github.com/RUDIWER/rwsoft/releases/latest/download/rwsoft-linux-amd64
 chmod +x rwsoft
-./rwsoft install ./rwsoft-app --profile=docker --branch=v0.5.7 --no-interaction
+./rwsoft install ./rwsoft-app --profile=docker --branch=latest --no-interaction
 ```
+
+For fully reproducible installs, replace `latest` with an explicit release tag in both the download URL and `--branch` value.
 
 ### Post-Install Access
 

@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -59,7 +62,7 @@ Usage:
 Install options:
   --profile=auto|lerd|herd|docker|laravel-cloud
   --repo=https://github.com/RUDIWER/rwsoft.git
-  --branch=main
+  --branch=main|latest|vX.Y.Z
   --source=/local/path
   --dry-run
   --force
@@ -118,7 +121,7 @@ func runInstall(ctx context.Context, args []string) error {
 	flags := flag.NewFlagSet("install", flag.ContinueOnError)
 	profileName := flags.String("profile", "auto", "installation profile")
 	repoURL := flags.String("repo", defaultRepositoryURL, "git repository URL")
-	branch := flags.String("branch", "main", "git branch to clone")
+	branch := flags.String("branch", "main", "git branch, tag, or latest release to clone")
 	sourcePath := flags.String("source", "", "local source directory instead of git clone")
 	dryRun := flags.Bool("dry-run", false, "show actions without changing files")
 	force := flags.Bool("force", false, "allow using a non-empty target directory")
@@ -163,12 +166,25 @@ func runInstall(ctx context.Context, args []string) error {
 		return err
 	}
 
+	branchName := strings.TrimSpace(*branch)
+	if branchName == "" {
+		branchName = "main"
+	}
+
+	source := strings.TrimSpace(*sourcePath)
+	if source == "" {
+		branchName, err = resolveInstallBranch(ctx, *repoURL, branchName, *dryRun)
+		if err != nil {
+			return err
+		}
+	}
+
 	options := InstallOptions{
 		Profile:               profile,
 		TargetDir:             absTarget,
 		RepositoryURL:         *repoURL,
-		Branch:                *branch,
-		SourcePath:            strings.TrimSpace(*sourcePath),
+		Branch:                branchName,
+		SourcePath:            source,
 		DryRun:                *dryRun,
 		Force:                 *force,
 		SkipComposer:          *skipComposer,
@@ -200,6 +216,79 @@ func runInstall(ctx context.Context, args []string) error {
 	}
 
 	return Install(ctx, options)
+}
+
+func resolveInstallBranch(ctx context.Context, repoURL string, branch string, dryRun bool) (string, error) {
+	if branch != "latest" {
+		return branch, nil
+	}
+
+	repository, ok := githubRepositoryFromURL(repoURL)
+	if !ok {
+		return "", fmt.Errorf("--branch=latest is only supported for GitHub repositories")
+	}
+
+	tagName, err := latestGitHubReleaseTag(ctx, repository)
+	if err != nil {
+		return "", err
+	}
+
+	if dryRun {
+		fmt.Printf("DRY-RUN: resolved latest release for %s to %s\n", repository, tagName)
+	} else {
+		fmt.Printf("Resolved latest release for %s to %s\n", repository, tagName)
+	}
+
+	return tagName, nil
+}
+
+func githubRepositoryFromURL(repoURL string) (string, bool) {
+	repoURL = strings.TrimSpace(strings.TrimSuffix(repoURL, ".git"))
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`^https://github\.com/([^/]+/[^/]+)$`),
+		regexp.MustCompile(`^git@github\.com:([^/]+/[^/]+)$`),
+	}
+
+	for _, pattern := range patterns {
+		matches := pattern.FindStringSubmatch(repoURL)
+		if len(matches) == 2 {
+			return matches[1], true
+		}
+	}
+
+	return "", false
+}
+
+func latestGitHubReleaseTag(ctx context.Context, repository string) (string, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.github.com/repos/"+repository+"/releases/latest", nil)
+	if err != nil {
+		return "", err
+	}
+	request.Header.Set("Accept", "application/vnd.github+json")
+	request.Header.Set("User-Agent", "rwsoft-installer")
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("could not resolve latest GitHub release for %s: %s", repository, response.Status)
+	}
+
+	var payload struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		return "", err
+	}
+
+	if strings.TrimSpace(payload.TagName) == "" {
+		return "", fmt.Errorf("latest GitHub release for %s has no tag_name", repository)
+	}
+
+	return payload.TagName, nil
 }
 
 func splitInstallTarget(args []string) (string, []string) {

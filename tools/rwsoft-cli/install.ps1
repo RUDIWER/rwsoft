@@ -30,7 +30,20 @@ try {
         throw "Checksum verification failed for $asset"
     }
 
-    & $exe install @args
+    $installArgs = @($args)
+    $hasRefArg = $false
+    foreach ($arg in $installArgs) {
+        if ($arg -eq '--branch' -or $arg -like '--branch=*' -or $arg -eq '--source' -or $arg -like '--source=*') {
+            $hasRefArg = $true
+            break
+        }
+    }
+
+    if (-not $hasRefArg) {
+        $installArgs += '--branch=latest'
+    }
+
+    & $exe install @installArgs
     exit $LASTEXITCODE
 }
 finally {
